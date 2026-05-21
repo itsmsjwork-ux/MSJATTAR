@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MSJ Attar | Premium Traditional Attars</title>
+  <meta name="description" content="MSJ Attar by Mohammed Shahid Joshiddi, a premium traditional attar brand blending heritage, natural ingredients, and luxurious fragrance rituals.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=5">
+</head>
+<body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <header class="site-header" data-glass>
+    <a class="brand-mark" href="#home" aria-label="MSJ Attar home">
+      <span class="brand-seal">MSJ</span>
+      <span>
+        <strong>MSJ Attar</strong>
+        <small>Mohammed Shahid Joshiddi</small>
+      </span>
+    </a>
+
+    <button class="icon-button menu-toggle" type="button" aria-label="Open menu" aria-expanded="false">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <nav class="main-nav" aria-label="Primary navigation">
+      <a href="#featured">Featured</a>
+      <a href="#catalog">Catalog</a>
+      <a href="#manage">Manage</a>
+      <a href="#product">Product</a>
+      <a href="#about">About</a>
+      <a href="#checkout">Checkout</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#contact">Contact</a>
+    </nav>
+
+    <button class="cart-pill" type="button" data-cart-open>
+      <span>Cart</span>
+      <strong id="cartCount">0</strong>
+    </button>
+  </header>
+
+  <main>
+    <section class="hero section-band" id="home">
+      <div class="hero-copy reveal">
+        <p class="eyebrow">Premium traditional attars</p>
+        <h1>MSJ Attar</h1>
+        <p class="hero-text">Pure, alcohol-free fragrances crafted with heritage botanicals, precious oils, and a quiet sense of ceremony.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="#catalog">Explore Attars</a>
+          <a class="button ghost" href="#about">Our Heritage</a>
+        </div>
+        <div class="trust-row" aria-label="Brand highlights">
+          <span>Natural oils</span>
+          <span>Small batches</span>
+          <span>Luxury gifting</span>
+        </div>
+      </div>
+
+      <div class="hero-product reveal" aria-label="Premium attar bottle showcase">
+        <div class="product-orbit"></div>
+        <div class="bottle-scene">
+          <div class="bottle-cap"></div>
+          <div class="bottle-neck"></div>
+          <div class="bottle-body">
+            <span>MSJ</span>
+            <small>Royal Oud</small>
+          </div>
+          <div class="bottle-glow"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-band" id="featured">
+      <div class="section-heading reveal">
+        <p class="eyebrow">Best sellers</p>
+        <h2>Featured Products</h2>
+        <p>Signature attars with deep projection, refined dry-downs, and presentation worthy of a private fragrance cabinet.</p>
+      </div>
+      <div class="featured-grid" id="featuredGrid"></div>
+    </section>
+
+    <section class="section-band catalog-shell" id="catalog">
+      <div class="section-heading reveal">
+        <p class="eyebrow">Full collection</p>
+        <h2>Product Catalog</h2>
+        <p>Filter by fragrance family, bottle size, and price to find the right attar for daily wear, gifting, or special occasions.</p>
+      </div>
+
+      <div class="catalog-layout">
+        <aside class="filters glass-panel reveal" aria-label="Catalog filters">
+          <div class="filter-group">
+            <label for="typeFilter">Fragrance Type</label>
+            <select id="typeFilter">
+              <option value="all">All types</option>
+              <option value="Oud">Oud</option>
+              <option value="Floral">Floral</option>
+              <option value="Musk">Musk</option>
+              <option value="Spice">Spice</option>
+              <option value="Fresh">Fresh</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="sizeFilter">Bottle Size</label>
+            <select id="sizeFilter">
+              <option value="all">All sizes</option>
+              <option value="3ml">3ml</option>
+              <option value="6ml">6ml</option>
+              <option value="12ml">12ml</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="priceFilter">Price Range</label>
+            <select id="priceFilter">
+              <option value="all">All prices</option>
+              <option value="under1500">Under ₹1,500</option>
+              <option value="1500to3000">₹1,500 - ₹3,000</option>
+              <option value="over3000">Over ₹3,000</option>
+            </select>
+          </div>
+          <button class="button ghost full-width" id="resetFilters" type="button">Reset Filters</button>
+        </aside>
+
+        <div class="catalog-grid" id="catalogGrid" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="section-band manage-section" id="manage">
+      <div class="section-heading reveal">
+        <p class="eyebrow">Listing manager</p>
+        <h2>Manage Product Listings</h2>
+        <p>Admin-only area for adding, editing, or removing attars. Enter the PIN to unlock listing controls.</p>
+      </div>
+
+      <form class="admin-lock glass-panel reveal" id="adminLock">
+        <div>
+          <p class="eyebrow">Admin access</p>
+          <h3>Enter PIN</h3>
+          <p class="form-note">Only the shop owner should unlock product listing controls.</p>
+        </div>
+        <div class="admin-pin-row">
+          <input id="adminPin" type="password" inputmode="numeric" autocomplete="off" placeholder="Admin PIN">
+          <button class="button primary" type="submit">Unlock</button>
+        </div>
+        <p class="form-note" id="adminLockNote">Demo PIN is set in JavaScript and can be changed before hosting.</p>
+      </form>
+
+      <div class="manage-layout">
+        <form class="listing-form glass-panel reveal" id="listingForm">
+          <input type="hidden" id="productId">
+          <div class="field-row">
+            <label>Product Name <input id="productName" type="text" placeholder="Royal Oud Reserve" required></label>
+            <label>Price <input id="productPrice" type="number" min="1" placeholder="2499" required></label>
+          </div>
+          <div class="field-row">
+            <label>Fragrance Type
+              <select id="productType" required>
+                <option value="Oud">Oud</option>
+                <option value="Floral">Floral</option>
+                <option value="Musk">Musk</option>
+                <option value="Spice">Spice</option>
+                <option value="Fresh">Fresh</option>
+              </select>
+            </label>
+            <label>Bottle Size
+              <select id="productSize" required>
+                <option value="3ml">3ml</option>
+                <option value="6ml">6ml</option>
+                <option value="12ml">12ml</option>
+              </select>
+            </label>
+          </div>
+          <label>Description <textarea id="productDescription" rows="4" placeholder="Describe fragrance notes, mood, and occasion" required></textarea></label>
+          <label>Ingredients <input id="productIngredients" type="text" placeholder="Oud oil, amber, saffron, sandalwood" required></label>
+          <div class="field-row">
+            <label>Image URL <input id="productImage" type="url" placeholder="https://example.com/attar.jpg"></label>
+            <label>Accent Color <input id="productColor" type="color" value="#8b541d"></label>
+          </div>
+          <label>Bottle Photo Upload <input id="productPhotoFile" type="file" accept="image/*"></label>
+          <div class="photo-preview" id="photoPreview">
+            <span>No bottle photo selected</span>
+          </div>
+          <label class="check-field"><input id="productFeatured" type="checkbox"> Show in featured products</label>
+          <div class="form-actions">
+            <button class="button primary" type="submit" id="saveListing">Save Listing</button>
+            <button class="button ghost" type="button" id="clearListingForm">Clear</button>
+          </div>
+          <p class="form-note" id="listingNote">Use image URLs now; later this can be connected to an admin backend and file upload.</p>
+        </form>
+
+        <aside class="listing-panel glass-panel reveal">
+          <div class="listing-head">
+            <h3>Your Listings</h3>
+            <button class="button ghost small-button" type="button" id="resetDemoProducts">Reset Demo</button>
+          </div>
+          <div id="listingList" class="listing-list"></div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section-band product-detail" id="product">
+      <div class="product-gallery glass-panel reveal">
+        <div class="detail-image" id="detailImage">
+          <span>MSJ</span>
+        </div>
+        <div class="thumb-row" id="thumbRow"></div>
+      </div>
+
+      <article class="detail-copy reveal">
+        <p class="eyebrow">Selected attar</p>
+        <h2 id="detailName">Royal Oud Reserve</h2>
+        <p id="detailDescription">A deep oud accord softened with amber, saffron, and sandalwood for a graceful evening signature.</p>
+        <dl class="detail-list">
+          <div>
+            <dt>Ingredients</dt>
+            <dd id="detailIngredients">Oud oil, amber, saffron, sandalwood</dd>
+          </div>
+          <div>
+            <dt>Bottle Size</dt>
+            <dd id="detailSize">12ml</dd>
+          </div>
+          <div>
+            <dt>Price</dt>
+            <dd id="detailPrice">₹3,499</dd>
+          </div>
+        </dl>
+        <div class="detail-actions">
+          <button class="button primary" type="button" id="detailCartButton">Add to Cart</button>
+          <a class="button ghost" href="#checkout">Proceed to Checkout</a>
+        </div>
+      </article>
+
+      <div class="related-block reveal">
+        <div class="section-heading compact">
+          <p class="eyebrow">Pair with</p>
+          <h3>Related Products</h3>
+        </div>
+        <div class="related-grid" id="relatedGrid"></div>
+      </div>
+    </section>
+
+    <section class="section-band split-section" id="about">
+      <div class="story-copy reveal">
+        <p class="eyebrow">About the brand</p>
+        <h2>Mohammed Shahid Joshiddi’s Fragrance House</h2>
+        <p>MSJ Attar honors the traditional art of concentrated perfume oil: patient blending, elegant restraint, and a respect for botanicals that have scented gatherings, prayer, celebration, and personal ritual for generations.</p>
+        <p>Founded by Mohammed Shahid Joshiddi, the brand brings a premium lens to classic attar culture, pairing hand-selected notes with modern presentation and a commitment to alcohol-free refinement.</p>
+      </div>
+      <div class="values-grid reveal">
+        <div class="value-card glass-panel">
+          <strong>Heritage</strong>
+          <span>Traditional attar craft and regional fragrance memory.</span>
+        </div>
+        <div class="value-card glass-panel">
+          <strong>Purity</strong>
+          <span>Oil-based blends with thoughtful ingredient selection.</span>
+        </div>
+        <div class="value-card glass-panel">
+          <strong>Exclusivity</strong>
+          <span>Small-batch releases for collectors and connoisseurs.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-band checkout-section" id="checkout">
+      <div class="section-heading reveal">
+        <p class="eyebrow">Premium checkout</p>
+        <h2>Checkout Experience</h2>
+        <p>A smooth three-step purchase flow for fragrance lovers who already know what they want.</p>
+      </div>
+
+      <div class="checkout-layout">
+        <form class="checkout-form glass-panel reveal">
+          <div class="checkout-steps" aria-label="Checkout steps">
+            <span class="active">1. Details</span>
+            <span>2. Delivery</span>
+            <span>3. Payment</span>
+          </div>
+          <div class="field-row">
+            <label>Full Name <input type="text" placeholder="Your name"></label>
+            <label>Email <input type="email" placeholder="you@example.com"></label>
+          </div>
+          <label>Address <input type="text" placeholder="Street, city, postal code"></label>
+          <div class="field-row">
+            <label>Delivery <select><option>Premium gift packing</option><option>Standard secured shipping</option></select></label>
+            <label>Payment <select><option>UPI / Card</option><option>Cash on delivery</option></select></label>
+          </div>
+          <button class="button primary full-width" type="button" id="placeOrder">Place Order</button>
+          <p class="form-note" id="orderNote">Secure checkout mockup ready for payment gateway integration.</p>
+        </form>
+
+        <aside class="cart-summary glass-panel reveal">
+          <h3>Order Summary</h3>
+          <div id="checkoutItems"></div>
+          <div class="summary-line">
+            <span>Subtotal</span>
+            <strong id="checkoutSubtotal">₹0</strong>
+          </div>
+          <div class="summary-line muted">
+            <span>Luxury packing</span>
+            <span>Included</span>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section-band" id="dashboard">
+      <div class="section-heading reveal">
+        <p class="eyebrow">Owner view</p>
+        <h2>Analytics Dashboard</h2>
+        <p>Optional tracking surface for sales, product performance, conversion, and website traffic.</p>
+      </div>
+      <div class="dashboard-grid reveal">
+        <div class="metric glass-panel"><span>Monthly Sales</span><strong>₹4.8L</strong><small>+18% this month</small></div>
+        <div class="metric glass-panel"><span>Top Product</span><strong>Royal Oud</strong><small>312 orders</small></div>
+        <div class="metric glass-panel"><span>Traffic</span><strong>28.4K</strong><small>Visitors tracked</small></div>
+        <div class="metric glass-panel"><span>Conversion</span><strong>6.7%</strong><small>Premium checkout flow</small></div>
+      </div>
+      <div class="chart-panel glass-panel reveal">
+        <div class="bar" style="--height: 62%"><span>Oud</span></div>
+        <div class="bar" style="--height: 48%"><span>Musk</span></div>
+        <div class="bar" style="--height: 72%"><span>Rose</span></div>
+        <div class="bar" style="--height: 38%"><span>Spice</span></div>
+        <div class="bar" style="--height: 56%"><span>Fresh</span></div>
+      </div>
+    </section>
+
+    <section class="section-band social-section">
+      <div class="newsletter glass-panel reveal">
+        <div>
+          <p class="eyebrow">Private list</p>
+          <h2>Premium Offers Subscription</h2>
+          <p>Receive early access to limited attar drops, gift sets, and seasonal blends.</p>
+        </div>
+        <form class="newsletter-form">
+          <input type="email" placeholder="Email address" aria-label="Email address">
+          <button class="button primary" type="button" id="newsletterButton">Subscribe</button>
+        </form>
+      </div>
+
+      <div class="instagram reveal">
+        <div class="section-heading compact">
+          <p class="eyebrow">Instagram gallery</p>
+          <h3>@msjattar</h3>
+        </div>
+        <div class="instagram-grid">
+          <div></div><div></div><div></div><div></div><div></div><div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-band contact-section" id="contact">
+      <div class="section-heading reveal">
+        <p class="eyebrow">Contact</p>
+        <h2>Speak With MSJ Attar</h2>
+        <p>For gifting, wholesale, custom selections, and private fragrance consultation.</p>
+      </div>
+      <div class="contact-layout">
+        <form class="contact-form glass-panel reveal">
+          <label>Name <input type="text" placeholder="Your name"></label>
+          <label>Email <input type="email" placeholder="you@example.com"></label>
+          <label>Message <textarea rows="5" placeholder="Tell us what you are looking for"></textarea></label>
+          <button class="button primary" type="button">Send Message</button>
+        </form>
+        <div class="social-links glass-panel reveal">
+          <h3>Social Links</h3>
+          <a href="#" aria-label="Instagram">Instagram</a>
+          <a href="#" aria-label="Facebook">Facebook</a>
+          <a href="#" aria-label="WhatsApp">WhatsApp</a>
+          <a href="mailto:hello@msjattar.example">hello@msjattar.example</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <aside class="cart-drawer" id="cartDrawer" aria-hidden="true">
+    <div class="cart-panel glass-panel">
+      <div class="drawer-head">
+        <h3>Your Cart</h3>
+        <button class="icon-button close-cart" type="button" aria-label="Close cart" data-cart-close>×</button>
+      </div>
+      <div id="cartItems"></div>
+      <div class="summary-line">
+        <span>Total</span>
+        <strong id="cartTotal">₹0</strong>
+      </div>
+      <a class="button primary full-width" href="#checkout" data-cart-close>Checkout</a>
+    </div>
+  </aside>
+
+  <footer class="site-footer">
+    <strong>MSJ Attar</strong>
+    <span>Premium traditional attars by Mohammed Shahid Joshiddi.</span>
+  </footer>
+
+  <script src="script.js?v=5"></script>
+</body>
+</html>
