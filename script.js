@@ -115,21 +115,27 @@ const rupee = new Intl.NumberFormat("en-IN", {
 
 const qs = (selector) => document.querySelector(selector);
 const qsa = (selector) => [...document.querySelectorAll(selector)];
+const listen = (selector, event, handler) => {
+  const element = typeof selector === "string" ? qs(selector) : selector;
+  if (element) element.addEventListener(event, handler);
+};
 
 function applyAdminLock() {
-  qs("#adminLock").classList.toggle("admin-hidden", isAdminUnlocked);
-  qs(".manage-layout").classList.toggle("admin-hidden", !isAdminUnlocked);
-  qs("#adminLockNote").textContent = isAdminUnlocked
-    ? "Admin controls unlocked. Changes will save to Supabase."
-    : "Sign in with the Supabase admin account to unlock listing controls.";
+  qs("#adminLock")?.classList.toggle("admin-hidden", isAdminUnlocked);
+  qs(".manage-layout")?.classList.toggle("admin-hidden", !isAdminUnlocked);
+  if (qs("#adminLockNote")) {
+    qs("#adminLockNote").textContent = isAdminUnlocked
+      ? "Admin controls unlocked. Changes will save to Supabase."
+      : "Sign in with the Supabase admin account to unlock listing controls.";
+  }
 }
 
 function requireAdmin() {
   if (isAdminUnlocked) return true;
   location.hash = "manage";
   showPage("manage");
-  qs("#adminLockNote").textContent = "Please sign in before changing listings.";
-  qs("#adminEmail").focus();
+  if (qs("#adminLockNote")) qs("#adminLockNote").textContent = "Please sign in before changing listings.";
+  qs("#adminEmail")?.focus();
   return false;
 }
 
@@ -558,18 +564,18 @@ qsa("#typeFilter, #sizeFilter, #priceFilter").forEach((filter) => {
   filter.addEventListener("change", renderCatalog);
 });
 
-qs("#resetFilters").addEventListener("click", () => {
+listen("#resetFilters", "click", () => {
   qs("#typeFilter").value = "all";
   qs("#sizeFilter").value = "all";
   qs("#priceFilter").value = "all";
   renderCatalog();
 });
 
-qs("#listingForm").addEventListener("submit", upsertListing);
+listen("#listingForm", "submit", upsertListing);
 
-qs("#clearListingForm").addEventListener("click", resetListingForm);
+listen("#clearListingForm", "click", resetListingForm);
 
-qs("#adminLock").addEventListener("submit", async (event) => {
+listen("#adminLock", "submit", async (event) => {
   event.preventDefault();
   qs("#adminLockNote").textContent = "Signing in...";
   const { error } = await supabaseClient.auth.signInWithPassword({
@@ -588,14 +594,14 @@ qs("#adminLock").addEventListener("submit", async (event) => {
   qs("#adminLockNote").textContent = `Sign in failed: ${error.message}`;
 });
 
-qs("#adminSignOut").addEventListener("click", async () => {
+listen("#adminSignOut", "click", async () => {
   await supabaseClient.auth.signOut();
   isAdminUnlocked = false;
   applyAdminLock();
   resetListingForm();
 });
 
-qs(".menu-toggle").addEventListener("click", () => {
+listen(".menu-toggle", "click", () => {
   const nav = qs(".main-nav");
   const expanded = nav.classList.toggle("open");
   qs(".menu-toggle").setAttribute("aria-expanded", expanded.toString());
@@ -608,9 +614,9 @@ qsa(".main-nav a").forEach((link) => {
   });
 });
 
-window.addEventListener("hashchange", () => showPage());
+listen(window, "hashchange", () => showPage());
 
-qs("#productPhotoFile").addEventListener("change", async (event) => {
+listen("#productPhotoFile", "change", async (event) => {
   const file = event.target.files[0];
   if (!file) {
     qs("#photoPreview").innerHTML = "<span>No bottle photo selected</span>";
@@ -622,11 +628,11 @@ qs("#productPhotoFile").addEventListener("change", async (event) => {
   qs("#productImage").value = "";
 });
 
-qs("#placeOrder").addEventListener("click", () => {
+listen("#placeOrder", "click", () => {
   qs("#orderNote").textContent = "Order preview confirmed. Connect this button to your payment gateway when ready.";
 });
 
-qs("#newsletterButton").addEventListener("click", () => {
+listen("#newsletterButton", "click", () => {
   qs("#newsletterButton").textContent = "Subscribed";
 });
 
