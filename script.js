@@ -1,6 +1,7 @@
-const STORAGE_KEY = "msjAttarProducts";
-const ADMIN_PIN = "7860";
-const ADMIN_SESSION_KEY = "msjAttarAdminUnlocked";
+const SUPABASE_URL = "https://xpnfzmwrcxwpxgoaqpeh.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwbmZ6bXdyY3h3cHhnb2FxcGVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzNjc2NjYsImV4cCI6MjA5NDk0MzY2Nn0.MMkibPkw-OY_iUgKUTNli1lNXI6NEF26xTtM8Fva6ow";
+const PRODUCT_IMAGE_BUCKET = "product-images";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const defaultProducts = [
   {
@@ -93,10 +94,10 @@ const defaultProducts = [
   }
 ];
 
-let products = loadProducts();
+let products = [...defaultProducts];
 let selectedProduct = products[0];
 const cart = new Map();
-let isAdminUnlocked = sessionStorage.getItem(ADMIN_SESSION_KEY) === "true";
+let isAdminUnlocked = false;
 const revealObserver = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
     if (entry.isIntersecting) {
@@ -115,34 +116,70 @@ const rupee = new Intl.NumberFormat("en-IN", {
 const qs = (selector) => document.querySelector(selector);
 const qsa = (selector) => [...document.querySelectorAll(selector)];
 
-function loadProducts() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    return Array.isArray(saved) && saved.length ? saved : defaultProducts;
-  } catch {
-    return defaultProducts;
-  }
-}
-
-function saveProducts() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
-}
-
 function applyAdminLock() {
   qs("#adminLock").classList.toggle("admin-hidden", isAdminUnlocked);
   qs(".manage-layout").classList.toggle("admin-hidden", !isAdminUnlocked);
   qs("#adminLockNote").textContent = isAdminUnlocked
-    ? "Admin controls unlocked for this browser tab."
-    : "Enter owner PIN to unlock listing controls.";
+    ? "Admin controls unlocked. Changes will save to Supabase."
+    : "Sign in with the Supabase admin account to unlock listing controls.";
 }
 
 function requireAdmin() {
   if (isAdminUnlocked) return true;
   location.hash = "manage";
   showPage("manage");
-  qs("#adminLockNote").textContent = "Please unlock with the admin PIN before changing listings.";
-  qs("#adminPin").focus();
+  qs("#adminLockNote").textContent = "Please sign in before changing listings.";
+  qs("#adminEmail").focus();
   return false;
+}
+
+function fromSupabaseProduct(product) {
+  return {
+    id: product.id,
+    name: product.name,
+    price: Number(product.price),
+    type: product.type,
+    size: product.size,
+    description: product.description,
+    ingredients: product.ingredients,
+    image: product.image_url || "",
+    color: product.color || "#8b541d",
+    featured: Boolean(product.featured)
+  };
+}
+
+function toSupabaseProduct(product) {
+  return {
+    name: product.name,
+    price: product.price,
+    type: product.type,
+    size: product.size,
+    description: product.description,
+    ingredients: product.ingredients,
+    image_url: product.image,
+    color: product.color,
+    featured: product.featured
+  };
+}
+
+async function loadProductsFromSupabase() {
+  const { data, error } = await supabaseClient
+    .from("products")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.warn("Supabase load failed:", error.message);
+    qs("#listingNote").textContent = "Could not load Supabase products yet. Check table policies.";
+    products = [...defaultProducts];
+  } else {
+    products = data.length ? data.map(fromSupabaseProduct) : [...defaultProducts];
+  }
+
+  selectedProduct = products[0];
+  renderAllProducts();
+  selectProduct(selectedProduct.id);
+  renderCart();
 }
 
 function fileToDataURL(file) {
@@ -152,6 +189,22 @@ function fileToDataURL(file) {
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+}
+
+async function uploadProductPhoto(file) {
+  const extension = file.name.split(".").pop() || "jpg";
+  const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
+  const { error } = await supabaseClient.storage
+    .from(PRODUCT_IMAGE_BUCKET)
+    .upload(path, file, { cacheControl: "3600", upsert: false });
+
+  if (error) throw error;
+
+  const { data } = supabaseClient.storage
+    .from(PRODUCT_IMAGE_BUCKET)
+    .getPublicUrl(path);
+
+  return data.publicUrl;
 }
 
 function slugify(value) {
@@ -250,15 +303,22 @@ async function upsertListing(event) {
   const existingId = qs("#productId").value;
   const name = qs("#productName").value.trim();
   const price = Number(qs("#productPrice").value);
-  const id = existingId || `${slugify(name)}-${Date.now().toString(36)}`;
   const uploadedPhoto = qs("#productPhotoFile").files[0];
   const existingProduct = products.find((product) => product.id === existingId);
-  const image = uploadedPhoto
-    ? await fileToDataURL(uploadedPhoto)
-    : qs("#productImage").value.trim() || existingProduct?.image || "";
+  qs("#listingNote").textContent = uploadedPhoto ? "Uploading bottle photo..." : "Saving listing...";
+
+  let image = qs("#productImage").value.trim() || existingProduct?.image || "";
+  if (uploadedPhoto) {
+    try {
+      image = await uploadProductPhoto(uploadedPhoto);
+    } catch (error) {
+      qs("#listingNote").textContent = `Photo upload failed: ${error.message}`;
+      return;
+    }
+  }
 
   const listing = {
-    id,
+    id: existingId,
     name,
     price,
     type: qs("#productType").value,
@@ -275,31 +335,33 @@ async function upsertListing(event) {
     return;
   }
 
-  products = existingId
-    ? products.map((product) => product.id === existingId ? listing : product)
-    : [listing, ...products];
+  const payload = toSupabaseProduct(listing);
+  const result = existingId
+    ? await supabaseClient.from("products").update(payload).eq("id", existingId).select().single()
+    : await supabaseClient.from("products").insert(payload).select().single();
 
-  saveProducts();
-  renderAllProducts();
-  selectProduct(id);
+  if (result.error) {
+    qs("#listingNote").textContent = `Save failed: ${result.error.message}`;
+    return;
+  }
+
+  await loadProductsFromSupabase();
+  selectProduct(result.data.id);
   resetListingForm();
   qs("#listingNote").textContent = existingId ? "Listing updated successfully." : "Listing added successfully.";
 }
 
 function deleteListing(productId) {
   if (!requireAdmin()) return;
-  products = products.filter((product) => product.id !== productId);
-  saveProducts();
-  cart.delete(productId);
+  supabaseClient.from("products").delete().eq("id", productId).then(async ({ error }) => {
+    if (error) {
+      qs("#listingNote").textContent = `Delete failed: ${error.message}`;
+      return;
+    }
 
-  if (!products.length) {
-    products = [...defaultProducts];
-    saveProducts();
-  }
-
-  selectedProduct = products[0];
-  renderAllProducts();
-  selectProduct(selectedProduct.id);
+    cart.delete(productId);
+    await loadProductsFromSupabase();
+  });
   renderCart();
 }
 
@@ -507,31 +569,30 @@ qs("#listingForm").addEventListener("submit", upsertListing);
 
 qs("#clearListingForm").addEventListener("click", resetListingForm);
 
-qs("#adminLock").addEventListener("submit", (event) => {
+qs("#adminLock").addEventListener("submit", async (event) => {
   event.preventDefault();
-  if (qs("#adminPin").value === ADMIN_PIN) {
+  qs("#adminLockNote").textContent = "Signing in...";
+  const { error } = await supabaseClient.auth.signInWithPassword({
+    email: qs("#adminEmail").value.trim(),
+    password: qs("#adminPassword").value
+  });
+
+  if (!error) {
     isAdminUnlocked = true;
-    sessionStorage.setItem(ADMIN_SESSION_KEY, "true");
-    qs("#adminPin").value = "";
+    qs("#adminPassword").value = "";
     applyAdminLock();
     observeReveals();
     return;
   }
 
-  qs("#adminLockNote").textContent = "Wrong PIN. Please try again.";
+  qs("#adminLockNote").textContent = `Sign in failed: ${error.message}`;
 });
 
-qs("#resetDemoProducts").addEventListener("click", () => {
-  if (!requireAdmin()) return;
-  products = [...defaultProducts];
-  saveProducts();
-  cart.clear();
-  selectedProduct = products[0];
-  renderAllProducts();
-  selectProduct(selectedProduct.id);
-  renderCart();
+qs("#adminSignOut").addEventListener("click", async () => {
+  await supabaseClient.auth.signOut();
+  isAdminUnlocked = false;
+  applyAdminLock();
   resetListingForm();
-  qs("#listingNote").textContent = "Demo products restored.";
 });
 
 qs(".menu-toggle").addEventListener("click", () => {
@@ -569,8 +630,15 @@ qs("#newsletterButton").addEventListener("click", () => {
   qs("#newsletterButton").textContent = "Subscribed";
 });
 
-renderAllProducts();
-selectProduct(selectedProduct.id);
-renderCart();
-observeReveals();
-showPage();
+async function initApp() {
+  const { data } = await supabaseClient.auth.getSession();
+  isAdminUnlocked = Boolean(data.session);
+  renderAllProducts();
+  selectProduct(selectedProduct.id);
+  renderCart();
+  observeReveals();
+  showPage();
+  await loadProductsFromSupabase();
+}
+
+initApp();
