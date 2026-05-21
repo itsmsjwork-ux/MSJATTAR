@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=5">
+  <link rel="stylesheet" href="styles.css?v=6">
 </head>
 <body>
   <div class="ambient ambient-one"></div>
@@ -135,20 +135,21 @@
       <div class="section-heading reveal">
         <p class="eyebrow">Listing manager</p>
         <h2>Manage Product Listings</h2>
-        <p>Admin-only area for adding, editing, or removing attars. Enter the PIN to unlock listing controls.</p>
+        <p>Admin-only area for adding, editing, or removing attars. Sign in to update the live Supabase catalog.</p>
       </div>
 
       <form class="admin-lock glass-panel reveal" id="adminLock">
         <div>
           <p class="eyebrow">Admin access</p>
-          <h3>Enter PIN</h3>
+          <h3>Sign In</h3>
           <p class="form-note">Only the shop owner should unlock product listing controls.</p>
         </div>
         <div class="admin-pin-row">
-          <input id="adminPin" type="password" inputmode="numeric" autocomplete="off" placeholder="Admin PIN">
-          <button class="button primary" type="submit">Unlock</button>
+          <input id="adminEmail" type="email" autocomplete="email" placeholder="Admin email">
+          <input id="adminPassword" type="password" autocomplete="current-password" placeholder="Password">
+          <button class="button primary" type="submit">Sign In</button>
         </div>
-        <p class="form-note" id="adminLockNote">Demo PIN is set in JavaScript and can be changed before hosting.</p>
+        <p class="form-note" id="adminLockNote">Create the admin user in Supabase Auth before signing in.</p>
       </form>
 
       <div class="manage-layout">
@@ -197,7 +198,7 @@
         <aside class="listing-panel glass-panel reveal">
           <div class="listing-head">
             <h3>Your Listings</h3>
-            <button class="button ghost small-button" type="button" id="resetDemoProducts">Reset Demo</button>
+            <button class="button ghost small-button" type="button" id="adminSignOut">Sign Out</button>
           </div>
           <div id="listingList" class="listing-list"></div>
         </aside>
@@ -399,6 +400,7 @@
     <span>Premium traditional attars by Mohammed Shahid Joshiddi.</span>
   </footer>
 
-  <script src="script.js?v=5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js?v=6"></script>
 </body>
 </html>
