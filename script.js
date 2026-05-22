@@ -532,7 +532,7 @@ function renderOrders() {
   if (!ordersList) return;
 
   if (!isAdminUnlocked) {
-    ordersList.innerHTML = `<div class="order-card"><strong>Admin login required</strong><span>Open Manage, sign in, then come back to Dashboard to see orders.</span></div>`;
+    ordersList.innerHTML = `<div class="order-card"><strong>Admin login required</strong><span>Sign in above to view customer orders.</span></div>`;
     return;
   }
 
@@ -642,7 +642,7 @@ function showPage(view = currentView()) {
   }
 
   applyAdminLock();
-  if (targetView === "dashboard") loadOrdersFromSupabase();
+  if (targetView === "manage") loadOrdersFromSupabase();
   observeReveals();
   window.scrollTo({ top: 0, behavior: "auto" });
 }

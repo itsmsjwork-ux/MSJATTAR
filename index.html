@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=13">
+  <link rel="stylesheet" href="styles.css?v=14">
 </head>
 <body>
   <div class="ambient ambient-one"></div>
@@ -207,6 +207,15 @@
           <div id="listingList" class="listing-list"></div>
         </aside>
       </div>
+
+      <div class="orders-panel glass-panel reveal">
+        <div class="listing-head">
+          <h3>Recent Orders</h3>
+          <button class="button ghost small-button" type="button" id="refreshOrders">Refresh</button>
+        </div>
+        <p class="form-note" id="ordersNote">Customer orders appear here after checkout.</p>
+        <div id="ordersList" class="orders-list"></div>
+      </div>
     </section>
 
     <section class="section-band product-detail" id="product">
@@ -338,14 +347,6 @@
         <div class="bar" style="--height: 38%"><span>Spice</span></div>
         <div class="bar" style="--height: 56%"><span>Fresh</span></div>
       </div>
-      <div class="orders-panel glass-panel reveal">
-        <div class="listing-head">
-          <h3>Recent Orders</h3>
-          <button class="button ghost small-button" type="button" id="refreshOrders">Refresh</button>
-        </div>
-        <p class="form-note" id="ordersNote">Sign in from Manage to view customer orders.</p>
-        <div id="ordersList" class="orders-list"></div>
-      </div>
     </section>
 
     <section class="section-band social-section">
@@ -417,6 +418,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="script.js?v=13"></script>
+  <script src="script.js?v=14"></script>
 </body>
 </html>
