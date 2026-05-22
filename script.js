@@ -633,13 +633,6 @@ async function submitOrder(event) {
 
   qs("#orderNote").textContent = "Placing order...";
   const { error } = await supabaseClient.from("orders").insert(payload);
-  const orderForWhatsApp = fromSupabaseOrder({
-    id: "new",
-    ...payload,
-    total_amount: total,
-    created_at: new Date().toISOString()
-  });
-
   if (error) {
     qs("#orderNote").textContent = `Order failed: ${error.message}`;
     return;
@@ -648,8 +641,7 @@ async function submitOrder(event) {
   cart.clear();
   renderCart();
   qs("#checkoutForm").reset();
-  qs("#orderNote").textContent = "Order placed successfully. WhatsApp message is opening for quick confirmation.";
-  window.open(whatsappOrderUrl(orderForWhatsApp), "_blank", "noopener");
+  qs("#orderNote").textContent = "Order placed successfully. We will contact you soon.";
   await loadOrdersFromSupabase();
 }
 
