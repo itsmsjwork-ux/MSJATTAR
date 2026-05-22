@@ -446,24 +446,24 @@ p {
 }
 
 .bottle-cap {
-  width: 5.4rem;
-  height: 3.2rem;
-  border: 1px solid rgba(246, 217, 138, 0.58);
-  border-radius: 8px 8px 3px 3px;
+  width: 6rem;
+  height: 3.05rem;
+  border: 1px solid rgba(246, 217, 138, 0.34);
+  border-radius: 12px 12px 4px 4px;
   background:
-    linear-gradient(135deg, #2b210f 0%, #f7dc8a 42%, #9b6a20 58%, #3b2a12 100%);
-  box-shadow: inset 0 0 22px rgba(255, 255, 255, 0.18);
-  animation: capShine 4.8s ease-in-out infinite;
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent 24%),
+    linear-gradient(90deg, #090806 0%, #11100d 18%, #050403 50%, #1c1710 82%, #050403 100%);
+  box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.1), 0 7px 18px rgba(0, 0, 0, 0.42);
 }
 
 .bottle-neck {
-  width: 3.2rem;
-  height: 3.1rem;
-  border: 1px solid rgba(246, 217, 138, 0.45);
+  width: 4.4rem;
+  height: 2.7rem;
+  border: 1px solid rgba(246, 217, 138, 0.22);
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.12), rgba(217, 173, 85, 0.2), rgba(20, 14, 7, 0.65)),
-    linear-gradient(#2a2114, #534221);
-  box-shadow: inset 0 0 18px rgba(246, 217, 138, 0.12);
+    linear-gradient(90deg, rgba(255, 207, 99, 0.15), rgba(0, 0, 0, 0.3), rgba(255, 207, 99, 0.12)),
+    linear-gradient(#120d06, #3d2a0e);
+  box-shadow: inset 0 0 18px rgba(246, 217, 138, 0.09);
 }
 
 .bottle-body,
@@ -480,62 +480,94 @@ p {
   display: grid;
   place-items: center;
   align-content: center;
-  width: min(62vw, 17rem);
-  height: 24rem;
-  border-radius: 42% 42% 18px 18px;
+  width: min(56vw, 14.5rem);
+  height: 23.8rem;
+  border-radius: 22px;
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  transform: perspective(700px) rotateY(-8deg);
+  transform: perspective(760px) rotateY(-7deg);
+  padding: 1.15rem;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.16), transparent 18% 78%, rgba(255, 210, 104, 0.11)),
+    radial-gradient(circle at 50% 24%, rgba(255, 126, 22, 0.5), transparent 34%),
+    linear-gradient(180deg, rgba(102, 44, 3, 0.9), rgba(16, 10, 5, 0.98));
+  box-shadow: var(--shadow), inset 0 0 48px rgba(246, 147, 32, 0.24), inset 0 -18px 30px rgba(0, 0, 0, 0.42);
 }
 
 .bottle-body::before {
   content: "";
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(circle at 50% 24%, rgba(246, 217, 138, 0.22), transparent 18%),
-    linear-gradient(100deg, rgba(255, 248, 221, 0.18) 0 7%, transparent 23% 78%, rgba(255, 226, 142, 0.1) 92%);
-  opacity: 0.82;
+  background: linear-gradient(90deg, rgba(255, 217, 128, 0.28), transparent 12% 84%, rgba(255, 217, 128, 0.12));
+  opacity: 0.7;
   z-index: -1;
 }
 
 .bottle-body::after {
   content: "";
   position: absolute;
-  left: 12%;
-  right: 12%;
-  bottom: 1rem;
-  height: 4.8rem;
-  border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(217, 173, 85, 0.12), transparent 66%);
-  opacity: 0.8;
+  inset: 5.6rem 1.25rem 2.3rem;
+  border: 1px solid rgba(246, 217, 138, 0.5);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(4, 3, 2, 0.78), rgba(16, 9, 5, 0.74)),
+    radial-gradient(circle at 50% 28%, rgba(217, 173, 85, 0.12), transparent 46%);
+  box-shadow: inset 0 0 22px rgba(217, 173, 85, 0.08);
   z-index: -1;
+}
+
+.bottle-crown {
+  width: 3.1rem;
+  height: 1.35rem;
+  margin-bottom: 0.3rem;
+  clip-path: polygon(0 100%, 8% 38%, 24% 70%, 38% 18%, 50% 66%, 62% 18%, 76% 70%, 92% 38%, 100% 100%);
+  background: linear-gradient(135deg, #8b5b1b, #ffe4a0 48%, #b77a23);
+  filter: drop-shadow(0 0 8px rgba(217, 173, 85, 0.26));
 }
 
 .bottle-logo {
   font-family: var(--serif);
-  font-size: 3.2rem;
+  font-size: 3rem;
   color: var(--gold-bright);
   line-height: 1;
   text-shadow: 0 0 18px rgba(246, 217, 138, 0.3);
-}
-
-.bottle-ornament {
-  display: block;
-  width: 3.6rem;
-  height: 1.5rem;
-  margin: 0.65rem 0 4.8rem;
-  border-top: 1px solid rgba(246, 217, 138, 0.6);
-  border-bottom: 1px solid rgba(246, 217, 138, 0.32);
-  opacity: 0.7;
+  z-index: 1;
 }
 
 .bottle-body small {
-  color: var(--muted);
-  letter-spacing: 0.2em;
+  margin-top: 0.1rem;
+  color: var(--gold-bright);
+  letter-spacing: 0.24em;
   text-transform: uppercase;
   font-weight: 800;
+  z-index: 1;
+}
+
+.bottle-body strong {
+  display: grid;
+  place-items: center;
+  width: 6.2rem;
+  min-height: 3.8rem;
+  margin: 1rem 0 0.65rem;
+  border: 1px solid rgba(217, 173, 85, 0.5);
+  border-radius: 4px;
+  color: #1a0f05;
+  background: linear-gradient(135deg, #ffe8a5, #d0a04e 55%, #fff1bd);
+  font-family: var(--serif);
+  font-size: 0.85rem;
+  line-height: 1.05;
+  text-align: center;
+  text-transform: uppercase;
+  z-index: 1;
+}
+
+.bottle-body em {
+  color: var(--gold-bright);
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  z-index: 1;
 }
 
 .bottle-glow {
@@ -1300,8 +1332,9 @@ input[type="file"] {
     height: 18rem;
   }
 
-  .bottle-ornament {
-    margin-bottom: 3.2rem;
+  .bottle-body strong {
+    margin-top: 0.65rem;
+    transform: scale(0.86);
   }
 
   .featured-grid,
@@ -1392,17 +1425,13 @@ input[type="file"] {
     height: 15rem;
   }
 
-  .bottle-body span {
-    font-size: 2.5rem;
-  }
-
   .bottle-logo {
     font-size: 2.5rem;
   }
 
-  .bottle-ornament {
-    width: 2.8rem;
-    margin-bottom: 2.5rem;
+  .bottle-body strong {
+    transform: scale(0.78);
+    margin: 0.4rem 0 0.3rem;
   }
 
   .product-card {
