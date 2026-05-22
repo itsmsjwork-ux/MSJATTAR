@@ -3,6 +3,8 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const PRODUCT_IMAGE_BUCKET = "product-images";
 const CONTACT_EMAIL = "its.msj.work@gmail.com";
 const CONTACT_ENDPOINT = `https://formsubmit.co/ajax/${CONTACT_EMAIL}`;
+const OWNER_WHATSAPP = "919480169422";
+const ORDER_STATUSES = ["new", "confirmed", "packed", "shipped", "delivered", "cancelled"];
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const defaultProducts = [
@@ -206,6 +208,34 @@ function fromSupabaseOrder(order) {
     status: order.status || "new",
     createdAt: order.created_at
   };
+}
+
+function buildWhatsAppOrderMessage(order) {
+  const lines = order.items
+    .map((item) => `- ${item.name} x ${item.quantity} (${rupee.format(item.price * item.quantity)})`)
+    .join("\n");
+
+  return [
+    "New MSJ Attar Order",
+    "",
+    `Name: ${order.customerName}`,
+    `Phone: ${order.customerPhone}`,
+    `Email: ${order.customerEmail}`,
+    `City: ${order.city || ""}`,
+    `Address: ${order.address}`,
+    "",
+    "Items:",
+    lines,
+    "",
+    `Total: ${rupee.format(order.total)}`,
+    `Delivery: ${order.delivery}`,
+    `Payment: ${order.payment}`,
+    `Status: ${order.status}`
+  ].join("\n");
+}
+
+function whatsappOrderUrl(order) {
+  return `https://wa.me/${OWNER_WHATSAPP}?text=${encodeURIComponent(buildWhatsAppOrderMessage(order))}`;
 }
 
 async function loadOrdersFromSupabase() {
@@ -548,9 +578,17 @@ function renderOrders() {
         <span>${escapeHTML(order.customerPhone)} - ${escapeHTML(order.city || "")}</span>
         <small>${escapeHTML(order.customerEmail)} - ${new Date(order.createdAt).toLocaleString("en-IN")}</small>
         <small>${escapeHTML(order.address)}</small>
-        <small>${escapeHTML(order.delivery)} - ${escapeHTML(order.payment)} - Status: ${escapeHTML(order.status)}</small>
+        <small>${escapeHTML(order.delivery)} - ${escapeHTML(order.payment)}</small>
         <div class="order-lines">
           ${order.items.map((item) => `<small>${escapeHTML(item.name)} x ${item.quantity} - ${rupee.format(item.price * item.quantity)}</small>`).join("")}
+        </div>
+        <div class="order-actions">
+          <label>Status
+            <select data-order-status="${escapeHTML(order.id)}">
+              ${ORDER_STATUSES.map((status) => `<option value="${status}" ${status === order.status ? "selected" : ""}>${status}</option>`).join("")}
+            </select>
+          </label>
+          <a class="button ghost small-button" href="${whatsappOrderUrl(order)}" target="_blank" rel="noopener">WhatsApp</a>
         </div>
       </article>
     `).join("")
@@ -595,6 +633,12 @@ async function submitOrder(event) {
 
   qs("#orderNote").textContent = "Placing order...";
   const { error } = await supabaseClient.from("orders").insert(payload);
+  const orderForWhatsApp = fromSupabaseOrder({
+    id: "new",
+    ...payload,
+    total_amount: total,
+    created_at: new Date().toISOString()
+  });
 
   if (error) {
     qs("#orderNote").textContent = `Order failed: ${error.message}`;
@@ -604,7 +648,25 @@ async function submitOrder(event) {
   cart.clear();
   renderCart();
   qs("#checkoutForm").reset();
-  qs("#orderNote").textContent = "Order placed successfully. We will contact you soon.";
+  qs("#orderNote").textContent = "Order placed successfully. WhatsApp message is opening for quick confirmation.";
+  window.open(whatsappOrderUrl(orderForWhatsApp), "_blank", "noopener");
+  await loadOrdersFromSupabase();
+}
+
+async function updateOrderStatus(orderId, status) {
+  if (!requireAdmin()) return;
+
+  const { error } = await supabaseClient
+    .from("orders")
+    .update({ status })
+    .eq("id", orderId);
+
+  if (error) {
+    qs("#ordersNote").textContent = `Status update failed: ${error.message}`;
+    return;
+  }
+
+  qs("#ordersNote").textContent = "Order status updated.";
   await loadOrdersFromSupabase();
 }
 
@@ -726,6 +788,13 @@ document.addEventListener("click", (event) => {
   if (event.target.closest("[data-cart-close]")) closeCart();
 
   if (event.target === qs("#cartDrawer")) closeCart();
+});
+
+document.addEventListener("change", (event) => {
+  const statusSelect = event.target.closest("[data-order-status]");
+  if (statusSelect) {
+    updateOrderStatus(statusSelect.dataset.orderStatus, statusSelect.value);
+  }
 });
 
 qsa("#typeFilter, #sizeFilter, #priceFilter").forEach((filter) => {
