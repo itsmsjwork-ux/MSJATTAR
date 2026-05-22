@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=12">
+  <link rel="stylesheet" href="styles.css?v=13">
 </head>
 <body>
   <div class="ambient ambient-one"></div>
@@ -281,23 +281,27 @@
       </div>
 
       <div class="checkout-layout">
-        <form class="checkout-form glass-panel reveal">
+        <form class="checkout-form glass-panel reveal" id="checkoutForm">
           <div class="checkout-steps" aria-label="Checkout steps">
             <span class="active">1. Details</span>
             <span>2. Delivery</span>
             <span>3. Payment</span>
           </div>
           <div class="field-row">
-            <label>Full Name <input type="text" placeholder="Your name"></label>
-            <label>Email <input type="email" placeholder="you@example.com"></label>
+            <label>Full Name <input id="checkoutName" type="text" placeholder="Your name" required></label>
+            <label>Email <input id="checkoutEmail" type="email" placeholder="you@example.com" required></label>
           </div>
-          <label>Address <input type="text" placeholder="Street, city, postal code"></label>
           <div class="field-row">
-            <label>Delivery <select><option>Premium gift packing</option><option>Standard secured shipping</option></select></label>
-            <label>Payment <select><option>UPI / Card</option><option>Cash on delivery</option></select></label>
+            <label>Phone <input id="checkoutPhone" type="tel" placeholder="+91 98765 43210" required></label>
+            <label>City <input id="checkoutCity" type="text" placeholder="Your city" required></label>
           </div>
-          <button class="button primary full-width" type="button" id="placeOrder">Place Order</button>
-          <p class="form-note" id="orderNote">Secure checkout mockup ready for payment gateway integration.</p>
+          <label>Address <input id="checkoutAddress" type="text" placeholder="Street, city, postal code" required></label>
+          <div class="field-row">
+            <label>Delivery <select id="checkoutDelivery"><option>Premium gift packing</option><option>Standard secured shipping</option></select></label>
+            <label>Payment <select id="checkoutPayment"><option>Cash on delivery</option><option>UPI / Card</option></select></label>
+          </div>
+          <button class="button primary full-width" type="submit" id="placeOrder">Place Order</button>
+          <p class="form-note" id="orderNote">Orders will be saved to your Supabase dashboard.</p>
         </form>
 
         <aside class="cart-summary glass-panel reveal">
@@ -333,6 +337,14 @@
         <div class="bar" style="--height: 72%"><span>Rose</span></div>
         <div class="bar" style="--height: 38%"><span>Spice</span></div>
         <div class="bar" style="--height: 56%"><span>Fresh</span></div>
+      </div>
+      <div class="orders-panel glass-panel reveal">
+        <div class="listing-head">
+          <h3>Recent Orders</h3>
+          <button class="button ghost small-button" type="button" id="refreshOrders">Refresh</button>
+        </div>
+        <p class="form-note" id="ordersNote">Sign in from Manage to view customer orders.</p>
+        <div id="ordersList" class="orders-list"></div>
       </div>
     </section>
 
@@ -405,6 +417,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="script.js?v=12"></script>
+  <script src="script.js?v=13"></script>
 </body>
 </html>

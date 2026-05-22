@@ -98,6 +98,7 @@ let products = [...defaultProducts];
 let selectedProduct = products[0];
 const cart = new Map();
 let isAdminUnlocked = false;
+let orders = [];
 const revealObserver = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
     if (entry.isIntersecting) {
@@ -186,6 +187,48 @@ async function loadProductsFromSupabase() {
   renderAllProducts();
   selectProduct(selectedProduct.id);
   renderCart();
+}
+
+function fromSupabaseOrder(order) {
+  return {
+    id: order.id,
+    customerName: order.customer_name,
+    customerEmail: order.customer_email,
+    customerPhone: order.customer_phone,
+    city: order.city,
+    address: order.address,
+    delivery: order.delivery_method,
+    payment: order.payment_method,
+    items: Array.isArray(order.items) ? order.items : [],
+    total: Number(order.total_amount || 0),
+    status: order.status || "new",
+    createdAt: order.created_at
+  };
+}
+
+async function loadOrdersFromSupabase() {
+  if (!isAdminUnlocked) {
+    renderOrders();
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("orders")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(30);
+
+  if (error) {
+    qs("#ordersNote").textContent = `Could not load orders: ${error.message}`;
+    orders = [];
+  } else {
+    orders = data.map(fromSupabaseOrder);
+    qs("#ordersNote").textContent = orders.length
+      ? "Latest customer orders from Supabase."
+      : "No orders yet.";
+  }
+
+  renderOrders();
 }
 
 function fileToDataURL(file) {
@@ -484,6 +527,85 @@ function renderCart() {
   qs("#checkoutItems").innerHTML = itemMarkup;
 }
 
+function renderOrders() {
+  const ordersList = qs("#ordersList");
+  if (!ordersList) return;
+
+  if (!isAdminUnlocked) {
+    ordersList.innerHTML = `<div class="order-card"><strong>Admin login required</strong><span>Open Manage, sign in, then come back to Dashboard to see orders.</span></div>`;
+    return;
+  }
+
+  ordersList.innerHTML = orders.length
+    ? orders.map((order) => `
+      <article class="order-card">
+        <div class="listing-head">
+          <strong>${escapeHTML(order.customerName)}</strong>
+          <span>${rupee.format(order.total)}</span>
+        </div>
+        <span>${escapeHTML(order.customerPhone)} - ${escapeHTML(order.city || "")}</span>
+        <small>${escapeHTML(order.customerEmail)} - ${new Date(order.createdAt).toLocaleString("en-IN")}</small>
+        <small>${escapeHTML(order.address)}</small>
+        <small>${escapeHTML(order.delivery)} - ${escapeHTML(order.payment)} - Status: ${escapeHTML(order.status)}</small>
+        <div class="order-lines">
+          ${order.items.map((item) => `<small>${escapeHTML(item.name)} x ${item.quantity} - ${rupee.format(item.price * item.quantity)}</small>`).join("")}
+        </div>
+      </article>
+    `).join("")
+    : `<div class="order-card"><strong>No orders yet</strong><span>Customer orders will appear here after checkout.</span></div>`;
+}
+
+async function submitOrder(event) {
+  event.preventDefault();
+  const { count, total } = cartTotals();
+
+  if (!count) {
+    qs("#orderNote").textContent = "Please add at least one product to cart before placing an order.";
+    return;
+  }
+
+  const items = [...cart.values()].map(({ product, quantity }) => ({
+    id: product.id,
+    name: product.name,
+    price: product.price,
+    quantity,
+    size: product.size,
+    type: product.type
+  }));
+
+  const payload = {
+    customer_name: qs("#checkoutName").value.trim(),
+    customer_email: qs("#checkoutEmail").value.trim(),
+    customer_phone: qs("#checkoutPhone").value.trim(),
+    city: qs("#checkoutCity").value.trim(),
+    address: qs("#checkoutAddress").value.trim(),
+    delivery_method: qs("#checkoutDelivery").value,
+    payment_method: qs("#checkoutPayment").value,
+    items,
+    total_amount: total,
+    status: "new"
+  };
+
+  if (!payload.customer_name || !payload.customer_email || !payload.customer_phone || !payload.address || !payload.city) {
+    qs("#orderNote").textContent = "Please fill name, email, phone, city, and address.";
+    return;
+  }
+
+  qs("#orderNote").textContent = "Placing order...";
+  const { error } = await supabaseClient.from("orders").insert(payload);
+
+  if (error) {
+    qs("#orderNote").textContent = `Order failed: ${error.message}`;
+    return;
+  }
+
+  cart.clear();
+  renderCart();
+  qs("#checkoutForm").reset();
+  qs("#orderNote").textContent = "Order placed successfully. We will contact you soon.";
+  await loadOrdersFromSupabase();
+}
+
 function openCart() {
   qs("#cartDrawer").classList.add("open");
   qs("#cartDrawer").setAttribute("aria-hidden", "false");
@@ -520,6 +642,7 @@ function showPage(view = currentView()) {
   }
 
   applyAdminLock();
+  if (targetView === "dashboard") loadOrdersFromSupabase();
   observeReveals();
   window.scrollTo({ top: 0, behavior: "auto" });
 }
@@ -587,6 +710,7 @@ listen("#adminLock", "submit", async (event) => {
     isAdminUnlocked = true;
     qs("#adminPassword").value = "";
     applyAdminLock();
+    loadOrdersFromSupabase();
     observeReveals();
     return;
   }
@@ -597,7 +721,9 @@ listen("#adminLock", "submit", async (event) => {
 listen("#adminSignOut", "click", async () => {
   await supabaseClient.auth.signOut();
   isAdminUnlocked = false;
+  orders = [];
   applyAdminLock();
+  renderOrders();
   resetListingForm();
 });
 
@@ -628,9 +754,9 @@ listen("#productPhotoFile", "change", async (event) => {
   qs("#productImage").value = "";
 });
 
-listen("#placeOrder", "click", () => {
-  qs("#orderNote").textContent = "Order preview confirmed. Connect this button to your payment gateway when ready.";
-});
+listen("#checkoutForm", "submit", submitOrder);
+
+listen("#refreshOrders", "click", loadOrdersFromSupabase);
 
 listen("#newsletterButton", "click", () => {
   qs("#newsletterButton").textContent = "Subscribed";
@@ -642,9 +768,11 @@ async function initApp() {
   renderAllProducts();
   selectProduct(selectedProduct.id);
   renderCart();
+  renderOrders();
   observeReveals();
   showPage();
   await loadProductsFromSupabase();
+  await loadOrdersFromSupabase();
 }
 
 initApp();
