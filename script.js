@@ -1,6 +1,8 @@
 const SUPABASE_URL = "https://xpnfzmwrcxwpxgoaqpeh.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwbmZ6bXdyY3h3cHhnb2FxcGVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzNjc2NjYsImV4cCI6MjA5NDk0MzY2Nn0.MMkibPkw-OY_iUgKUTNli1lNXI6NEF26xTtM8Fva6ow";
 const PRODUCT_IMAGE_BUCKET = "product-images";
+const CONTACT_EMAIL = "its.msj.work@gmail.com";
+const CONTACT_ENDPOINT = `https://formsubmit.co/ajax/${CONTACT_EMAIL}`;
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const defaultProducts = [
@@ -606,6 +608,49 @@ async function submitOrder(event) {
   await loadOrdersFromSupabase();
 }
 
+async function submitContactForm(event) {
+  event.preventDefault();
+  const note = qs("#contactNote");
+  const name = qs("#contactName").value.trim();
+  const email = qs("#contactEmail").value.trim();
+  const message = qs("#contactMessage").value.trim();
+
+  if (!name || !email || !message) {
+    note.textContent = "Please fill name, email, and message.";
+    return;
+  }
+
+  note.textContent = "Sending message...";
+
+  try {
+    const response = await fetch(CONTACT_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify({
+        name,
+        email,
+        message,
+        _subject: `MSJ Attar contact from ${name}`,
+        _template: "table",
+        _captcha: "false"
+      })
+    });
+
+    if (!response.ok) throw new Error("Message service is not ready yet.");
+
+    qs("#contactForm").reset();
+    note.textContent = "Message sent successfully. We will contact you soon.";
+  } catch (error) {
+    const subject = encodeURIComponent(`MSJ Attar contact from ${name}`);
+    const body = encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`);
+    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
+    note.textContent = "Opening email app to send your message.";
+  }
+}
+
 function openCart() {
   qs("#cartDrawer").classList.add("open");
   qs("#cartDrawer").setAttribute("aria-hidden", "false");
@@ -757,6 +802,8 @@ listen("#productPhotoFile", "change", async (event) => {
 listen("#checkoutForm", "submit", submitOrder);
 
 listen("#refreshOrders", "click", loadOrdersFromSupabase);
+
+listen("#contactForm", "submit", submitContactForm);
 
 listen("#newsletterButton", "click", () => {
   qs("#newsletterButton").textContent = "Subscribed";
