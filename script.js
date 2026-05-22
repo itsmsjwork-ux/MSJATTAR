@@ -546,14 +546,21 @@ function renderCart() {
   const itemMarkup = items.length
     ? items.map(({ product, quantity }) => `
       <div class="cart-item">
-        <div>
-          <strong>${escapeHTML(product.name)}</strong>
-          <div class="muted">${quantity} x ${rupee.format(product.price)}</div>
+        <div class="cart-thumb" style="--product-color: ${escapeHTML(product.color || "#8b541d")}">
+          ${product.image ? `<img src="${escapeHTML(product.image)}" alt="${escapeHTML(product.name)}">` : `<span>MSJ</span>`}
         </div>
-        <button class="button ghost small-button" type="button" data-remove-cart="${escapeHTML(product.id)}">Remove</button>
+        <div class="cart-item-copy">
+          <strong>${escapeHTML(product.name)}</strong>
+          <span>${escapeHTML(product.type)} - ${escapeHTML(product.size)}</span>
+          <small>${quantity} x ${rupee.format(product.price)}</small>
+        </div>
+        <div class="cart-item-side">
+          <strong>${rupee.format(product.price * quantity)}</strong>
+          <button class="cart-remove" type="button" data-remove-cart="${escapeHTML(product.id)}">Remove</button>
+        </div>
       </div>
     `).join("")
-    : `<p class="muted">Your cart is waiting for a signature attar.</p>`;
+    : `<div class="cart-empty"><strong>Your cart is empty</strong><span>Add a signature attar to begin checkout.</span></div>`;
 
   qs("#cartItems").innerHTML = itemMarkup;
   qs("#checkoutItems").innerHTML = itemMarkup;

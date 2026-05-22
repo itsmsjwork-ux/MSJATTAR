@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=18">
+  <link rel="stylesheet" href="styles.css?v=19">
 </head>
 <body>
   <div class="ambient ambient-one"></div>
@@ -411,15 +411,21 @@
   <aside class="cart-drawer" id="cartDrawer" aria-hidden="true">
     <div class="cart-panel glass-panel">
       <div class="drawer-head">
-        <h3>Your Cart</h3>
+        <div>
+          <p class="eyebrow">Luxury basket</p>
+          <h3>Your Cart</h3>
+        </div>
         <button class="icon-button close-cart" type="button" aria-label="Close cart" data-cart-close>×</button>
       </div>
       <div id="cartItems"></div>
-      <div class="summary-line">
-        <span>Total</span>
-        <strong id="cartTotal">₹0</strong>
+      <div class="cart-footer">
+        <div class="summary-line">
+          <span>Total</span>
+          <strong id="cartTotal">₹0</strong>
+        </div>
+        <small>Luxury packing included. Shipping details on checkout.</small>
+        <a class="button primary full-width" href="#checkout" data-cart-close>Checkout</a>
       </div>
-      <a class="button primary full-width" href="#checkout" data-cart-close>Checkout</a>
     </div>
   </aside>
 
@@ -433,6 +439,6 @@
   </a>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="script.js?v=18"></script>
+  <script src="script.js?v=19"></script>
 </body>
 </html>
