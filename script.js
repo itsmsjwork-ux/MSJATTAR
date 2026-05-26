@@ -103,7 +103,6 @@ let products = [...defaultProducts];
 let selectedProduct = products[0];
 const cart = new Map();
 let isAdminUnlocked = false;
-let customerSession = null;
 let orders = [];
 const revealObserver = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
@@ -144,153 +143,6 @@ function requireAdmin() {
   if (qs("#adminLockNote")) qs("#adminLockNote").textContent = "Please sign in before changing listings.";
   qs("#adminEmail")?.focus();
   return false;
-}
-
-function applyCustomerAuth() {
-  const email = getCustomerEmail();
-  if (qs("#customerAuthNote")) {
-    qs("#customerAuthNote").textContent = email
-      ? `Verified as ${email}. You can place your order.`
-      : "Enter your email and verify OTP before placing order. Admin login is not used for customer checkout.";
-  }
-  if (email && qs("#checkoutEmail")) qs("#checkoutEmail").value = email;
-  if (email && qs("#customerLoginEmail")) qs("#customerLoginEmail").value = email;
-  loadSavedCustomerDetails();
-  renderCustomerAccount();
-}
-
-function requireCustomerLogin() {
-  if (getCustomerEmail()) return true;
-  qs("#orderNote").textContent = "Please verify your email OTP before placing order.";
-  qs("#customerLoginEmail")?.focus();
-  return false;
-}
-
-function getCustomerEmail() {
-  const email = customerSession?.user?.email || "";
-  return email && email !== ADMIN_EMAIL ? email : "";
-}
-
-function customerStorageKey(email = getCustomerEmail()) {
-  return email ? `msj-customer-profile:${email.toLowerCase()}` : "";
-}
-
-function saveCustomerDetails() {
-  const email = getCustomerEmail();
-  const key = customerStorageKey(email);
-  if (!key) return;
-
-  localStorage.setItem(key, JSON.stringify({
-    name: qs("#checkoutName")?.value.trim() || "",
-    phone: qs("#checkoutPhone")?.value.trim() || "",
-    city: qs("#checkoutCity")?.value.trim() || "",
-    address: qs("#checkoutAddress")?.value.trim() || "",
-    delivery: qs("#checkoutDelivery")?.value || "",
-    payment: qs("#checkoutPayment")?.value || ""
-  }));
-}
-
-function loadSavedCustomerDetails() {
-  const key = customerStorageKey();
-  if (!key) return;
-
-  const saved = JSON.parse(localStorage.getItem(key) || "null");
-  if (!saved) return;
-
-  if (qs("#checkoutName") && saved.name) qs("#checkoutName").value = saved.name;
-  if (qs("#checkoutPhone") && saved.phone) qs("#checkoutPhone").value = saved.phone;
-  if (qs("#checkoutCity") && saved.city) qs("#checkoutCity").value = saved.city;
-  if (qs("#checkoutAddress") && saved.address) qs("#checkoutAddress").value = saved.address;
-  if (qs("#checkoutDelivery") && saved.delivery) qs("#checkoutDelivery").value = saved.delivery;
-  if (qs("#checkoutPayment") && saved.payment) qs("#checkoutPayment").value = saved.payment;
-}
-
-function renderCustomerAccount(customerOrders = null) {
-  const email = getCustomerEmail();
-  const details = qs("#customerSavedDetails");
-  const list = qs("#customerOrdersList");
-  if (!details || !list) return;
-
-  if (!email) {
-    details.textContent = customerSession?.user?.email === ADMIN_EMAIL
-      ? "Admin is signed in. Customers should verify their own email here before ordering."
-      : "Login with your email OTP to reuse your details and view your orders.";
-    list.innerHTML = "";
-    return;
-  }
-
-  const saved = JSON.parse(localStorage.getItem(customerStorageKey(email)) || "null");
-  details.textContent = saved?.address
-    ? `Saved for ${email}: ${saved.name || "Customer"}, ${saved.city || "city not set"}`
-    : `Logged in as ${email}. Fill details once and they will stay saved on this device.`;
-
-  if (!customerOrders) return;
-
-  list.innerHTML = customerOrders.length
-    ? customerOrders.map((order) => `
-      <div class="customer-order-chip">
-        <span>${new Date(order.created_at).toLocaleDateString("en-IN")} - ${escapeHTML(order.status || "new")}</span>
-        <strong>${rupee.format(Number(order.total_amount) || 0)}</strong>
-      </div>
-    `).join("")
-    : `<div class="customer-order-chip"><span>No previous orders found.</span></div>`;
-}
-
-async function loadCustomerOrders() {
-  const email = getCustomerEmail();
-  if (!email) return;
-
-  const { data, error } = await supabaseClient
-    .from("orders")
-    .select("id,total_amount,status,created_at")
-    .eq("customer_email", email)
-    .order("created_at", { ascending: false })
-    .limit(5);
-
-  if (error) {
-    renderCustomerAccount([]);
-    return;
-  }
-
-  renderCustomerAccount(data || []);
-}
-
-async function saveCustomerProfile() {
-  const email = getCustomerEmail();
-  if (!email) return;
-
-  await supabaseClient.from("customer_profiles").upsert({
-    email,
-    name: qs("#checkoutName")?.value.trim() || "",
-    phone: qs("#checkoutPhone")?.value.trim() || "",
-    city: qs("#checkoutCity")?.value.trim() || "",
-    address: qs("#checkoutAddress")?.value.trim() || "",
-    delivery_method: qs("#checkoutDelivery")?.value || "",
-    payment_method: qs("#checkoutPayment")?.value || "",
-    updated_at: new Date().toISOString()
-  }, { onConflict: "email" });
-}
-
-async function loadCustomerProfile() {
-  const email = getCustomerEmail();
-  if (!email) return;
-
-  const { data, error } = await supabaseClient
-    .from("customer_profiles")
-    .select("name,phone,city,address,delivery_method,payment_method")
-    .eq("email", email)
-    .maybeSingle();
-
-  if (error || !data) return;
-
-  if (qs("#checkoutName") && data.name) qs("#checkoutName").value = data.name;
-  if (qs("#checkoutPhone") && data.phone) qs("#checkoutPhone").value = data.phone;
-  if (qs("#checkoutCity") && data.city) qs("#checkoutCity").value = data.city;
-  if (qs("#checkoutAddress") && data.address) qs("#checkoutAddress").value = data.address;
-  if (qs("#checkoutDelivery") && data.delivery_method) qs("#checkoutDelivery").value = data.delivery_method;
-  if (qs("#checkoutPayment") && data.payment_method) qs("#checkoutPayment").value = data.payment_method;
-  saveCustomerDetails();
-  renderCustomerAccount();
 }
 
 function fromSupabaseProduct(product) {
@@ -755,8 +607,6 @@ async function submitOrder(event) {
   event.preventDefault();
   const { count, total } = cartTotals();
 
-  if (!requireCustomerLogin()) return;
-
   if (!count) {
     qs("#orderNote").textContent = "Please add at least one product to cart before placing an order.";
     return;
@@ -773,7 +623,7 @@ async function submitOrder(event) {
 
   const payload = {
     customer_name: qs("#checkoutName").value.trim(),
-    customer_email: getCustomerEmail(),
+    customer_email: qs("#checkoutEmail").value.trim(),
     customer_phone: qs("#checkoutPhone").value.trim(),
     city: qs("#checkoutCity").value.trim(),
     address: qs("#checkoutAddress").value.trim(),
@@ -789,8 +639,6 @@ async function submitOrder(event) {
     return;
   }
 
-  saveCustomerDetails();
-  await saveCustomerProfile();
   qs("#orderNote").textContent = "Placing order...";
   const { error } = await supabaseClient.from("orders").insert(payload);
   if (error) {
@@ -800,80 +648,9 @@ async function submitOrder(event) {
 
   cart.clear();
   renderCart();
-  applyCustomerAuth();
-  if (qs("#customerOtp")) qs("#customerOtp").value = "";
-  qs("#orderNote").textContent = "Order placed successfully. Your details are saved for next time.";
+  qs("#checkoutForm").reset();
+  qs("#orderNote").textContent = "Order placed successfully. We will contact you soon.";
   await loadOrdersFromSupabase();
-  await loadCustomerOrders();
-}
-
-async function sendCustomerOtp() {
-  const email = qs("#customerLoginEmail").value.trim();
-  if (!email) {
-    qs("#customerAuthNote").textContent = "Please enter your email first.";
-    return;
-  }
-
-  if (email === ADMIN_EMAIL) {
-    qs("#customerAuthNote").textContent = "Use a customer email here. Admin email is only for Manage.";
-    return;
-  }
-
-  if (customerSession?.user?.email && customerSession.user.email !== email) {
-    await supabaseClient.auth.signOut();
-    customerSession = null;
-    isAdminUnlocked = false;
-    applyAdminLock();
-  }
-
-  qs("#customerAuthNote").textContent = "Sending OTP to your email...";
-  const { error } = await supabaseClient.auth.signInWithOtp({
-    email,
-    options: {
-      shouldCreateUser: true
-    }
-  });
-
-  qs("#customerAuthNote").textContent = error
-    ? `OTP send failed: ${error.message}`
-    : "OTP sent. Check your email and enter the code.";
-}
-
-async function verifyCustomerOtp() {
-  const email = qs("#customerLoginEmail").value.trim();
-  const token = qs("#customerOtp").value.trim();
-
-  if (!email || !token) {
-    qs("#customerAuthNote").textContent = "Please enter email and OTP.";
-    return;
-  }
-
-  qs("#customerAuthNote").textContent = "Verifying OTP...";
-  const { data, error } = await supabaseClient.auth.verifyOtp({
-    email,
-    token,
-    type: "email"
-  });
-
-  if (error) {
-    qs("#customerAuthNote").textContent = `OTP verification failed: ${error.message}`;
-    return;
-  }
-
-  customerSession = data.session;
-  isAdminUnlocked = customerSession?.user?.email === ADMIN_EMAIL;
-  if (isAdminUnlocked) {
-    customerSession = null;
-    await supabaseClient.auth.signOut();
-    isAdminUnlocked = false;
-    qs("#customerAuthNote").textContent = "Admin email cannot be used as a customer login.";
-    applyAdminLock();
-    renderCustomerAccount();
-    return;
-  }
-  applyCustomerAuth();
-  await loadCustomerProfile();
-  await loadCustomerOrders();
 }
 
 async function updateOrderStatus(orderId, status) {
@@ -1046,19 +823,15 @@ listen("#adminLock", "submit", async (event) => {
   if (!error) {
     if (data.user?.email !== ADMIN_EMAIL) {
       await supabaseClient.auth.signOut();
-      customerSession = null;
       isAdminUnlocked = false;
       qs("#adminLockNote").textContent = "This email is not allowed for admin controls.";
-      applyCustomerAuth();
       applyAdminLock();
       return;
     }
 
-    customerSession = null;
     isAdminUnlocked = true;
     qs("#adminPassword").value = "";
     applyAdminLock();
-    applyCustomerAuth();
     loadOrdersFromSupabase();
     observeReveals();
     return;
@@ -1069,10 +842,8 @@ listen("#adminLock", "submit", async (event) => {
 
 listen("#adminSignOut", "click", async () => {
   await supabaseClient.auth.signOut();
-  customerSession = null;
   isAdminUnlocked = false;
   orders = [];
-  applyCustomerAuth();
   applyAdminLock();
   renderOrders();
   resetListingForm();
@@ -1107,10 +878,6 @@ listen("#productPhotoFile", "change", async (event) => {
 
 listen("#checkoutForm", "submit", submitOrder);
 
-listen("#sendCustomerOtp", "click", sendCustomerOtp);
-
-listen("#verifyCustomerOtp", "click", verifyCustomerOtp);
-
 listen("#refreshOrders", "click", loadOrdersFromSupabase);
 
 listen("#contactForm", "submit", submitContactForm);
@@ -1122,19 +889,15 @@ listen("#newsletterButton", "click", () => {
 async function initApp() {
   const { data } = await supabaseClient.auth.getSession();
   isAdminUnlocked = data.session?.user?.email === ADMIN_EMAIL;
-  customerSession = isAdminUnlocked ? null : data.session;
   renderAllProducts();
   selectProduct(selectedProduct.id);
   renderCart();
   renderOrders();
-  applyCustomerAuth();
   applyAdminLock();
   observeReveals();
   showPage();
   await loadProductsFromSupabase();
   await loadOrdersFromSupabase();
-  await loadCustomerProfile();
-  await loadCustomerOrders();
 }
 
 initApp();
