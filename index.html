@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=22">
+  <link rel="stylesheet" href="styles.css?v=23">
 </head>
 <body>
   <div class="ambient ambient-one"></div>
@@ -47,6 +47,7 @@
       <a href="#product">Product</a>
       <a href="#about">About</a>
       <a href="#checkout">Checkout</a>
+      <a href="#account">Account</a>
       <a href="#dashboard">Dashboard</a>
       <a href="#contact">Contact</a>
     </nav>
@@ -292,6 +293,51 @@
       </div>
     </section>
 
+    <section class="section-band account-section" id="account">
+      <div class="section-heading reveal">
+        <p class="eyebrow">My account</p>
+        <h2>Login & Orders</h2>
+        <p>Customers can sign in with email OTP, save delivery details, and view recent orders.</p>
+      </div>
+
+      <div class="account-layout">
+        <form class="account-card glass-panel reveal" id="customerLoginForm">
+          <h3>Sign in</h3>
+          <p class="form-note" id="customerAuthNote">Enter your email and verify the OTP sent to your inbox.</p>
+          <label>Email <input id="customerLoginEmail" type="email" placeholder="you@example.com" required></label>
+          <button class="button ghost full-width" type="button" id="sendCustomerOtp">Send OTP</button>
+          <label>OTP <input id="customerOtp" type="text" inputmode="numeric" placeholder="Enter OTP"></label>
+          <button class="button primary full-width" type="submit">Verify & Login</button>
+          <button class="button ghost full-width" type="button" id="customerSignOut">Sign Out</button>
+        </form>
+
+        <form class="account-card glass-panel reveal" id="customerProfileForm">
+          <h3>Saved delivery details</h3>
+          <p class="form-note" id="customerProfileNote">Login to save and reuse your address at checkout.</p>
+          <div class="field-row">
+            <label>Full Name <input id="profileName" type="text" placeholder="Your name"></label>
+            <label>Phone <input id="profilePhone" type="tel" placeholder="+91 98765 43210"></label>
+          </div>
+          <div class="field-row">
+            <label>City <input id="profileCity" type="text" placeholder="Your city"></label>
+            <label>Email <input id="profileEmail" type="email" placeholder="you@example.com" readonly></label>
+          </div>
+          <label>Address <input id="profileAddress" type="text" placeholder="Street, city, postal code"></label>
+          <button class="button primary full-width" type="submit">Save Details</button>
+        </form>
+
+        <div class="account-card glass-panel reveal">
+          <div class="listing-head">
+            <h3>My orders</h3>
+            <button class="button ghost small-button" type="button" id="refreshCustomerOrders">Refresh</button>
+          </div>
+          <div class="customer-orders-list" id="customerOrdersList">
+            <div class="order-card"><strong>Login required</strong><span>Your orders will appear here after email login.</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="section-band checkout-section" id="checkout">
       <div class="section-heading reveal">
         <p class="eyebrow">Premium checkout</p>
@@ -305,6 +351,10 @@
             <span class="active">1. Details</span>
             <span>2. Delivery</span>
             <span>3. Payment</span>
+          </div>
+          <div class="checkout-account-note">
+            <span id="checkoutAccountNote">Guest checkout available. Login from Account to reuse saved details.</span>
+            <a href="#account">Account</a>
           </div>
           <div class="field-row">
             <label>Full Name <input id="checkoutName" type="text" placeholder="Your name" required></label>
@@ -439,6 +489,6 @@
   </a>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="script.js?v=22"></script>
+  <script src="script.js?v=23"></script>
 </body>
 </html>

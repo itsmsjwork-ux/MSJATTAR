@@ -852,6 +852,50 @@ textarea:focus {
   gap: 1rem;
 }
 
+.account-layout {
+  display: grid;
+  grid-template-columns: minmax(16rem, 0.85fr) minmax(0, 1.15fr);
+  gap: 1rem;
+}
+
+.account-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1.35rem;
+}
+
+.account-card h3 {
+  margin: 0;
+}
+
+.account-card:last-child {
+  grid-column: 1 / -1;
+}
+
+.checkout-account-note {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  border: 1px solid rgba(217, 173, 85, 0.18);
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem;
+  background: rgba(0, 0, 0, 0.16);
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.checkout-account-note a {
+  color: var(--gold-bright);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.customer-orders-list {
+  display: grid;
+  gap: 0.9rem;
+}
+
 .listing-form {
   display: grid;
   gap: 1rem;
@@ -1469,6 +1513,7 @@ input[type="file"] {
   .product-detail,
   .split-section,
   .checkout-layout,
+  .account-layout,
   .contact-layout,
   .admin-lock,
   .manage-layout,
@@ -1543,8 +1588,14 @@ input[type="file"] {
   .catalog-grid,
   .related-grid,
   .dashboard-grid,
+  .checkout-account-note,
   .field-row {
     grid-template-columns: 1fr;
+  }
+
+  .checkout-account-note {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .checkout-steps,
