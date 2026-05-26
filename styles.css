@@ -875,6 +875,39 @@ textarea:focus {
   gap: 0.7rem;
 }
 
+.customer-account-panel {
+  border: 1px solid rgba(217, 173, 85, 0.18);
+  border-radius: var(--radius);
+  margin-top: 0.35rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.18);
+  color: var(--muted);
+}
+
+.customer-account-panel strong {
+  color: var(--gold-bright);
+}
+
+.customer-account-panel p {
+  margin: 0.35rem 0 0;
+}
+
+.customer-orders-list {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 0.85rem;
+}
+
+.customer-order-chip {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.85rem;
+  border-top: 1px solid rgba(217, 173, 85, 0.14);
+  padding-top: 0.7rem;
+  color: var(--ivory);
+  font-size: 0.92rem;
+}
+
 .listing-form {
   display: grid;
   gap: 1rem;
