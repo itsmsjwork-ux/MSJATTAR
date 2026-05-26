@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=19">
+  <link rel="stylesheet" href="styles.css?v=20">
 </head>
 <body>
   <div class="ambient ambient-one"></div>
@@ -306,6 +306,18 @@
             <span>2. Delivery</span>
             <span>3. Payment</span>
           </div>
+          <div class="customer-login-box">
+            <div>
+              <strong>Customer Email Login</strong>
+              <p class="form-note" id="customerAuthNote">Enter your email and verify OTP before placing order.</p>
+            </div>
+            <div class="customer-login-grid">
+              <input id="customerLoginEmail" type="email" placeholder="Customer email">
+              <button class="button ghost" type="button" id="sendCustomerOtp">Send OTP</button>
+              <input id="customerOtp" type="text" inputmode="numeric" placeholder="Enter OTP">
+              <button class="button ghost" type="button" id="verifyCustomerOtp">Verify OTP</button>
+            </div>
+          </div>
           <div class="field-row">
             <label>Full Name <input id="checkoutName" type="text" placeholder="Your name" required></label>
             <label>Email <input id="checkoutEmail" type="email" placeholder="you@example.com" required></label>
@@ -439,6 +451,6 @@
   </a>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="script.js?v=19"></script>
+  <script src="script.js?v=20"></script>
 </body>
 </html>

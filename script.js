@@ -2,6 +2,7 @@ const SUPABASE_URL = "https://xpnfzmwrcxwpxgoaqpeh.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhwbmZ6bXdyY3h3cHhnb2FxcGVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzNjc2NjYsImV4cCI6MjA5NDk0MzY2Nn0.MMkibPkw-OY_iUgKUTNli1lNXI6NEF26xTtM8Fva6ow";
 const PRODUCT_IMAGE_BUCKET = "product-images";
 const CONTACT_EMAIL = "its.msj.work@gmail.com";
+const ADMIN_EMAIL = "its.msj.work@gmail.com";
 const CONTACT_ENDPOINT = `https://formsubmit.co/ajax/${CONTACT_EMAIL}`;
 const OWNER_WHATSAPP = "919480169422";
 const ORDER_STATUSES = ["new", "confirmed", "packed", "shipped", "delivered", "cancelled"];
@@ -102,6 +103,7 @@ let products = [...defaultProducts];
 let selectedProduct = products[0];
 const cart = new Map();
 let isAdminUnlocked = false;
+let customerSession = null;
 let orders = [];
 const revealObserver = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
@@ -141,6 +143,24 @@ function requireAdmin() {
   showPage("manage");
   if (qs("#adminLockNote")) qs("#adminLockNote").textContent = "Please sign in before changing listings.";
   qs("#adminEmail")?.focus();
+  return false;
+}
+
+function applyCustomerAuth() {
+  const email = customerSession?.user?.email || "";
+  if (qs("#customerAuthNote")) {
+    qs("#customerAuthNote").textContent = email
+      ? `Verified as ${email}. You can place your order.`
+      : "Enter your email and verify OTP before placing order.";
+  }
+  if (email && qs("#checkoutEmail")) qs("#checkoutEmail").value = email;
+  if (email && qs("#customerLoginEmail")) qs("#customerLoginEmail").value = email;
+}
+
+function requireCustomerLogin() {
+  if (customerSession?.user?.email) return true;
+  qs("#orderNote").textContent = "Please verify your email OTP before placing order.";
+  qs("#customerLoginEmail")?.focus();
   return false;
 }
 
@@ -606,6 +626,8 @@ async function submitOrder(event) {
   event.preventDefault();
   const { count, total } = cartTotals();
 
+  if (!requireCustomerLogin()) return;
+
   if (!count) {
     qs("#orderNote").textContent = "Please add at least one product to cart before placing an order.";
     return;
@@ -622,7 +644,7 @@ async function submitOrder(event) {
 
   const payload = {
     customer_name: qs("#checkoutName").value.trim(),
-    customer_email: qs("#checkoutEmail").value.trim(),
+    customer_email: customerSession.user.email,
     customer_phone: qs("#checkoutPhone").value.trim(),
     city: qs("#checkoutCity").value.trim(),
     address: qs("#checkoutAddress").value.trim(),
@@ -648,8 +670,54 @@ async function submitOrder(event) {
   cart.clear();
   renderCart();
   qs("#checkoutForm").reset();
+  applyCustomerAuth();
   qs("#orderNote").textContent = "Order placed successfully. We will contact you soon.";
   await loadOrdersFromSupabase();
+}
+
+async function sendCustomerOtp() {
+  const email = qs("#customerLoginEmail").value.trim();
+  if (!email) {
+    qs("#customerAuthNote").textContent = "Please enter your email first.";
+    return;
+  }
+
+  qs("#customerAuthNote").textContent = "Sending OTP to your email...";
+  const { error } = await supabaseClient.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: true
+    }
+  });
+
+  qs("#customerAuthNote").textContent = error
+    ? `OTP send failed: ${error.message}`
+    : "OTP sent. Check your email and enter the code.";
+}
+
+async function verifyCustomerOtp() {
+  const email = qs("#customerLoginEmail").value.trim();
+  const token = qs("#customerOtp").value.trim();
+
+  if (!email || !token) {
+    qs("#customerAuthNote").textContent = "Please enter email and OTP.";
+    return;
+  }
+
+  qs("#customerAuthNote").textContent = "Verifying OTP...";
+  const { data, error } = await supabaseClient.auth.verifyOtp({
+    email,
+    token,
+    type: "email"
+  });
+
+  if (error) {
+    qs("#customerAuthNote").textContent = `OTP verification failed: ${error.message}`;
+    return;
+  }
+
+  customerSession = data.session;
+  applyCustomerAuth();
 }
 
 async function updateOrderStatus(orderId, status) {
@@ -814,15 +882,27 @@ listen("#clearListingForm", "click", resetListingForm);
 listen("#adminLock", "submit", async (event) => {
   event.preventDefault();
   qs("#adminLockNote").textContent = "Signing in...";
-  const { error } = await supabaseClient.auth.signInWithPassword({
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
     email: qs("#adminEmail").value.trim(),
     password: qs("#adminPassword").value
   });
 
   if (!error) {
+    if (data.user?.email !== ADMIN_EMAIL) {
+      await supabaseClient.auth.signOut();
+      customerSession = null;
+      isAdminUnlocked = false;
+      qs("#adminLockNote").textContent = "This email is not allowed for admin controls.";
+      applyCustomerAuth();
+      applyAdminLock();
+      return;
+    }
+
+    customerSession = data.session;
     isAdminUnlocked = true;
     qs("#adminPassword").value = "";
     applyAdminLock();
+    applyCustomerAuth();
     loadOrdersFromSupabase();
     observeReveals();
     return;
@@ -833,8 +913,10 @@ listen("#adminLock", "submit", async (event) => {
 
 listen("#adminSignOut", "click", async () => {
   await supabaseClient.auth.signOut();
+  customerSession = null;
   isAdminUnlocked = false;
   orders = [];
+  applyCustomerAuth();
   applyAdminLock();
   renderOrders();
   resetListingForm();
@@ -869,6 +951,10 @@ listen("#productPhotoFile", "change", async (event) => {
 
 listen("#checkoutForm", "submit", submitOrder);
 
+listen("#sendCustomerOtp", "click", sendCustomerOtp);
+
+listen("#verifyCustomerOtp", "click", verifyCustomerOtp);
+
 listen("#refreshOrders", "click", loadOrdersFromSupabase);
 
 listen("#contactForm", "submit", submitContactForm);
@@ -879,11 +965,14 @@ listen("#newsletterButton", "click", () => {
 
 async function initApp() {
   const { data } = await supabaseClient.auth.getSession();
-  isAdminUnlocked = Boolean(data.session);
+  customerSession = data.session;
+  isAdminUnlocked = data.session?.user?.email === ADMIN_EMAIL;
   renderAllProducts();
   selectProduct(selectedProduct.id);
   renderCart();
   renderOrders();
+  applyCustomerAuth();
+  applyAdminLock();
   observeReveals();
   showPage();
   await loadProductsFromSupabase();
