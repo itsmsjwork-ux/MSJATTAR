@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { supabase } from "../lib/supabase";
 
 const PRODUCT_IMAGE_BUCKET = "product-images";
@@ -187,7 +187,7 @@ function ProductArt({ product }) {
 
   return (
     <div className="product-art" style={{ "--product": product.color }}>
-      <div className="mini-bottle">
+      <div className="mini-bottle" style={{ border: `1px solid ${product.color}` }}>
         <span>MSJ</span>
         <small>{product.size}</small>
       </div>
@@ -200,6 +200,234 @@ function Section({ id, view, className = "", children }) {
     <section id={id} className={`section-band ${className} ${view !== id ? "view-hidden" : ""}`}>
       {children}
     </section>
+  );
+}
+
+/* HIGH-PERFORMANCE BAKHUR SMOKE AND GOLD SPARKLES COMPONENT */
+function BakhurCanvas() {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let animationFrameId;
+    let width = (canvas.width = canvas.offsetWidth);
+    let height = (canvas.height = canvas.offsetHeight);
+
+    const handleResize = () => {
+      if (!canvas) return;
+      width = canvas.width = canvas.offsetWidth;
+      height = canvas.height = canvas.offsetHeight;
+    };
+    window.addEventListener("resize", handleResize);
+
+    const smokeParticles = [];
+    const maxSmoke = 22; // Balanced for high performance & luxurious feel
+
+    const goldParticles = [];
+    const maxGold = 35;
+
+    class SmokeParticle {
+      constructor() {
+        this.reset();
+        // Stagger initial spawn positions
+        this.y = height * (0.3 + Math.random() * 0.7);
+      }
+
+      reset() {
+        this.x = width / 2 + (Math.random() * 50 - 25);
+        this.y = height + Math.random() * 40;
+        this.vy = -0.5 - Math.random() * 0.6;
+        this.vx = Math.random() * 0.3 - 0.15;
+        this.life = 0;
+        this.maxLife = 200 + Math.random() * 100;
+        this.size = 25 + Math.random() * 15;
+        this.maxSize = 85 + Math.random() * 40;
+        this.opacity = 0;
+        this.wobbleSpeed = 0.008 + Math.random() * 0.012;
+        this.wobbleAmp = 0.4 + Math.random() * 0.6;
+        this.seed = Math.random() * 100;
+      }
+
+      update() {
+        this.y += this.vy;
+        this.x += this.vx + Math.sin(this.life * this.wobbleSpeed + this.seed) * this.wobbleAmp;
+        this.life++;
+
+        // Diffusion rate
+        this.size = this.size + (this.maxSize - this.size) * 0.006;
+
+        // Opacity transition (slow breath fade)
+        if (this.life < 60) {
+          this.opacity = (this.life / 60) * 0.06;
+        } else {
+          this.opacity = 0.06 * (1 - (this.life - 60) / (this.maxLife - 60));
+        }
+
+        if (this.life >= this.maxLife || this.y < -this.size) {
+          this.reset();
+        }
+      }
+
+      draw() {
+        ctx.save();
+        const gradient = ctx.createRadialGradient(
+          this.x, this.y, 0,
+          this.x, this.y, this.size
+        );
+        // Rich traditional warm bakhur color tones
+        gradient.addColorStop(0, `rgba(249, 232, 162, ${this.opacity})`);
+        gradient.addColorStop(0.3, `rgba(212, 175, 55, ${this.opacity * 0.4})`);
+        gradient.addColorStop(1, "rgba(5, 4, 3, 0)");
+
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    class GoldParticle {
+      constructor() {
+        this.reset();
+        this.y = Math.random() * height;
+      }
+
+      reset() {
+        this.x = Math.random() * width;
+        this.y = height + Math.random() * 20;
+        this.vy = -0.5 - Math.random() * 0.9;
+        this.vx = Math.random() * 0.4 - 0.2;
+        this.size = 0.8 + Math.random() * 1.8;
+        this.opacity = 0.15 + Math.random() * 0.65;
+        this.sparkleSpeed = 0.015 + Math.random() * 0.03;
+        this.seed = Math.random() * 12;
+      }
+
+      update() {
+        this.y += this.vy;
+        this.x += this.vx;
+        this.opacity = Math.max(0.1, Math.min(0.9, this.opacity + Math.sin(Date.now() * this.sparkleSpeed + this.seed) * 0.04));
+
+        if (this.y < -10 || this.x < -10 || this.x > width + 10) {
+          this.reset();
+        }
+      }
+
+      draw() {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(249, 232, 162, ${this.opacity})`;
+        ctx.shadowColor = "rgba(212, 175, 55, 0.75)";
+        ctx.shadowBlur = this.size * 2.5;
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    // Initialize particles
+    for (let i = 0; i < maxSmoke; i++) {
+      smokeParticles.push(new SmokeParticle());
+    }
+    for (let i = 0; i < maxGold; i++) {
+      goldParticles.push(new GoldParticle());
+    }
+
+    const render = () => {
+      ctx.clearRect(0, 0, width, height);
+
+      // Blending compositor for premium overlays
+      ctx.globalCompositeOperation = "screen";
+
+      smokeParticles.forEach((p) => {
+        p.update();
+        p.draw();
+      });
+
+      goldParticles.forEach((p) => {
+        p.update();
+        p.draw();
+      });
+
+      animationFrameId = requestAnimationFrame(render);
+    };
+
+    render();
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
+
+  return (
+    <div className="bakhur-canvas-container">
+      <canvas ref={canvasRef} style={{ width: "100%", height: "100%" }} />
+    </div>
+  );
+}
+
+/* INTERACTIVE 3D BOTTLE WITH SMOOTH INTERPOLATING MOUSE TILT */
+function HeroBottle() {
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [targetPos, setTargetPos] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      const x = (e.clientX / window.innerWidth) * 2 - 1; // -1 to 1 range
+      const y = (e.clientY / window.innerHeight) * 2 - 1; // -1 to 1 range
+      setTargetPos({ x, y });
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+
+  // Linear interpolation for silky smooth rotation transitions
+  useEffect(() => {
+    let frameId;
+    const updateMotion = () => {
+      setMousePos((prev) => {
+        const dx = targetPos.x - prev.x;
+        const dy = targetPos.y - prev.y;
+        return {
+          x: prev.x + dx * 0.07,
+          y: prev.y + dy * 0.07
+        };
+      });
+      frameId = requestAnimationFrame(updateMotion);
+    };
+    updateMotion();
+    return () => cancelAnimationFrame(frameId);
+  }, [targetPos]);
+
+  return (
+    <div className="hero-product reveal" aria-label="Premium attar bottle showcase">
+      <BakhurCanvas />
+      <div className="product-orbit" />
+      <div 
+        className="bottle-scene"
+        style={{
+          transform: `rotateY(${mousePos.x * 18}deg) rotateX(${-mousePos.y * 14}deg) translateY(${Math.sin(Date.now() / 900) * 8}px)`,
+          transition: "transform 0.05s ease"
+        }}
+      >
+        <div className="bottle-cap" />
+        <div className="bottle-neck" />
+        <div className="bottle-body">
+          <i className="bottle-crown" aria-hidden="true" />
+          <span className="bottle-logo">MSJ</span>
+          <small>Attar</small>
+          <strong>Oud<br />Al Haram</strong>
+          <em>6ML</em>
+        </div>
+        <div className="bottle-glow" />
+      </div>
+    </div>
   );
 }
 
@@ -261,6 +489,25 @@ export default function Home() {
   }, [products, filters]);
 
   const relatedProducts = products.filter((product) => product.type === selectedProduct.type && product.id !== selectedProduct.id).slice(0, 3);
+
+  // Intersection Observer for scroll reveal animations
+  useEffect(() => {
+    const reveals = document.querySelectorAll(".reveal");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("visible");
+          }
+        });
+      },
+      { threshold: 0.08 }
+    );
+    reveals.forEach((el) => observer.observe(el));
+    return () => {
+      reveals.forEach((el) => observer.unobserve(el));
+    };
+  }, [view, products]); // runs when catalog updates or section shifts to hook new structures
 
   useEffect(() => {
     const syncView = () => {
@@ -625,7 +872,7 @@ export default function Home() {
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
 
-      <header className="site-header" data-glass>
+      <header className="site-header">
         <button className="brand-mark" type="button" onClick={() => navigate("home")} aria-label="MSJ Attar home">
           <span className="brand-seal">
             <img src={`${ASSET_BASE}/assets/msj-logo.svg`} alt="MSJ Attar logo" />
@@ -636,10 +883,16 @@ export default function Home() {
           </span>
         </button>
 
-        <button className="icon-button menu-toggle" type="button" aria-label="Open menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>
-          <span />
-          <span />
-          <span />
+        <button 
+          className="menu-toggle" 
+          type="button" 
+          aria-label="Open menu" 
+          aria-expanded={menuOpen} 
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
+          <span style={{ transform: menuOpen ? "rotate(45deg) translate(6px, 6px)" : "none" }} />
+          <span style={{ opacity: menuOpen ? 0 : 1 }} />
+          <span style={{ transform: menuOpen ? "rotate(-45deg) translate(6px, -7px)" : "none" }} />
         </button>
 
         <nav className={`main-nav ${menuOpen ? "open" : ""}`} aria-label="Primary navigation">
@@ -658,7 +911,7 @@ export default function Home() {
 
       <main>
         <Section id="home" view={view} className="hero">
-          <div className="hero-copy reveal visible">
+          <div className="hero-copy reveal">
             <p className="eyebrow">Premium traditional attars</p>
             <h1>MSJ Attar</h1>
             <p className="hero-text">Pure, alcohol-free fragrances crafted with heritage botanicals, precious oils, and a quiet sense of ceremony.</p>
@@ -687,7 +940,8 @@ export default function Home() {
         <Section id="catalog" view={view} className="catalog-shell">
           <SectionHeading eyebrow="Full collection" title="Product Catalog" text="Filter by fragrance family, bottle size, and price to find the right attar for daily wear, gifting, or special occasions." />
           <div className="catalog-layout">
-            <aside className="filters glass-panel reveal visible">
+            <aside className="filters glass-panel reveal">
+              <h3>Filter Catalog</h3>
               <FilterSelect label="Fragrance Type" value={filters.type} onChange={(type) => setFilters({ ...filters, type })} options={["all", "Oud", "Floral", "Musk", "Spice", "Fresh"]} />
               <FilterSelect label="Bottle Size" value={filters.size} onChange={(size) => setFilters({ ...filters, size })} options={["all", "3ml", "6ml", "12ml"]} />
               <FilterSelect label="Price" value={filters.price} onChange={(price) => setFilters({ ...filters, price })} options={["all", "under1500", "1500to3000", "above3000"]} labels={{ under1500: "Under ₹1,500", "1500to3000": "₹1,500 - ₹3,000", above3000: "Above ₹3,000" }} />
@@ -703,7 +957,7 @@ export default function Home() {
 
         <Section id="product" view={view}>
           <SectionHeading eyebrow="Selected attar" title={selectedProduct.name} text={selectedProduct.description} />
-          <div className="product-detail glass-panel reveal visible">
+          <div className="product-detail glass-panel reveal">
             <ProductArt product={selectedProduct} />
             <div className="detail-copy">
               <p className="eyebrow">{selectedProduct.type} / {selectedProduct.size}</p>
@@ -729,13 +983,13 @@ export default function Home() {
         </Section>
 
         <Section id="about" view={view} className="split-section">
-          <div className="about-copy reveal visible">
+          <div className="about-copy reveal">
             <p className="eyebrow">About the brand</p>
             <h2>Mohammed Shahid Joshiddi</h2>
             <p>MSJ Attar is built on the idea that fragrance should feel personal, ceremonial, and rooted in heritage. Mohammed Shahid Joshiddi curates alcohol-free attars inspired by traditional oil perfumery and modern luxury presentation.</p>
             <p>Each blend focuses on purity, longevity, and emotional memory, from deep oud profiles to soft musks and floral signatures.</p>
           </div>
-          <div className="values-grid reveal visible">
+          <div className="values-grid reveal">
             <ValueCard title="Heritage" text="Traditional attar craft and regional fragrance memory." />
             <ValueCard title="Purity" text="Oil-based blends with thoughtful ingredient selection." />
             <ValueCard title="Exclusivity" text="Small-batch releases for collectors and connoisseurs." />
@@ -745,7 +999,7 @@ export default function Home() {
         <Section id="account" view={view} className="account-section">
           <SectionHeading eyebrow="My account" title="Login & Orders" text="Customers can sign in with email OTP, save delivery details, and view recent orders." />
           <div className="account-layout">
-            <form className="account-card glass-panel reveal visible" onSubmit={verifyCustomerOtp}>
+            <form className="account-card glass-panel reveal" onSubmit={verifyCustomerOtp}>
               <h3>Sign in</h3>
               <p className="form-note">{customerNote}</p>
               <label>Email <input type="email" value={profile.email} onChange={(event) => setProfile({ ...profile, email: event.target.value })} placeholder="you@example.com" required /></label>
@@ -755,8 +1009,8 @@ export default function Home() {
               <button className={`button ghost full-width ${!customerEmail ? "admin-hidden" : ""}`} type="button" onClick={customerSignOut}>Sign Out</button>
             </form>
 
-            <form className="account-card glass-panel reveal visible" onSubmit={(event) => { event.preventDefault(); saveCustomerProfile(profile); }}>
-              <h3>Saved delivery details</h3>
+            <form className="account-card glass-panel reveal" onSubmit={(event) => { event.preventDefault(); saveCustomerProfile(profile); }}>
+              <h3>Saved details</h3>
               <p className="form-note">{profileNote}</p>
               <div className="field-row">
                 <label>Full Name <input value={profile.name} onChange={(event) => setProfile({ ...profile, name: event.target.value })} placeholder="Your name" /></label>
@@ -770,7 +1024,7 @@ export default function Home() {
               <button className="button primary full-width" type="submit">Save Details</button>
             </form>
 
-            <div className="account-card glass-panel reveal visible">
+            <div className="account-card glass-panel reveal">
               <div className="listing-head">
                 <h3>My orders</h3>
                 <button className="button ghost small-button" type="button" onClick={() => loadCustomerOrders()}>Refresh</button>
@@ -791,7 +1045,7 @@ export default function Home() {
         <Section id="checkout" view={view} className="checkout-section">
           <SectionHeading eyebrow="Premium checkout" title="Checkout Experience" text="A smooth three-step purchase flow for fragrance lovers who already know what they want." />
           <div className="checkout-layout">
-            <form className="checkout-form glass-panel reveal visible" onSubmit={submitOrder}>
+            <form className="checkout-form glass-panel reveal" onSubmit={submitOrder}>
               <div className="checkout-steps"><span className="active">1. Details</span><span>2. Delivery</span><span>3. Payment</span></div>
               <div className="checkout-account-note">
                 <span>{customerEmail ? `Signed in as ${customerEmail}. Saved details are used at checkout.` : "Guest checkout available. Login from Account to reuse saved details."}</span>
@@ -820,14 +1074,14 @@ export default function Home() {
         <Section id="contact" view={view} className="contact-section">
           <SectionHeading eyebrow="Contact" title="Speak With MSJ Attar" text="For gifting, wholesale, custom selections, and private fragrance consultation." />
           <div className="contact-layout">
-            <form className="contact-form glass-panel reveal visible" onSubmit={submitContact}>
+            <form className="contact-form glass-panel reveal" onSubmit={submitContact}>
               <label>Name <input name="name" type="text" placeholder="Your name" required /></label>
               <label>Email <input name="email" type="email" placeholder="you@example.com" required /></label>
               <label>Message <textarea name="message" rows="5" placeholder="Tell us what you are looking for" required /></label>
               <button className="button primary" type="submit">Send Message</button>
               <p className="form-note">{contactNote}</p>
             </form>
-            <div className="social-links glass-panel reveal visible">
+            <div className="social-links glass-panel reveal">
               <h3>Social Links</h3>
               <a href="https://instagram.com" target="_blank">Instagram</a>
               <a href="https://facebook.com" target="_blank">Facebook</a>
@@ -840,13 +1094,14 @@ export default function Home() {
         <Section id="admin" view={view} className="manage-section">
           <SectionHeading eyebrow="Private admin" title="Admin Panel" text="Product listing, order management, and status updates are only for the MSJ Attar owner." />
           <form className={`admin-lock glass-panel ${adminUnlocked ? "admin-hidden" : ""}`} onSubmit={adminSignIn}>
+            <h3>Admin Panel Access</h3>
             <label>Admin Email <input name="email" type="email" placeholder={ADMIN_EMAIL} required /></label>
             <label>Password <input name="password" type="password" placeholder="Supabase password" required /></label>
             <button className="button primary" type="submit">Unlock Admin</button>
             <p className="form-note">{adminNote}</p>
           </form>
           <div className={`manage-layout ${!adminUnlocked ? "admin-hidden" : ""}`}>
-            <form className="listing-form glass-panel reveal visible" onSubmit={saveListing}>
+            <form className="listing-form glass-panel reveal" onSubmit={saveListing}>
               <div className="listing-head"><h3>Product listing</h3><button className="button ghost small-button" type="button" onClick={adminSignOut}>Sign Out</button></div>
               <input type="hidden" value={listing.id} readOnly />
               <label>Product Name <input value={listing.name} onChange={(event) => setListing({ ...listing, name: event.target.value })} placeholder="Baccarat Rough" required /></label>
@@ -869,7 +1124,7 @@ export default function Home() {
               <p className="form-note">{listingNote}</p>
             </form>
 
-            <div className="listing-list glass-panel reveal visible">
+            <div className="listing-list glass-panel reveal">
               <div className="listing-head"><h3>Live Listings</h3><button className="button ghost small-button" type="button" onClick={loadProducts}>Refresh</button></div>
               <div className="listing-items">
                 {products.map((product) => (
@@ -886,7 +1141,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className={`orders-panel glass-panel reveal visible ${!adminUnlocked ? "admin-hidden" : ""}`}>
+          <div className={`orders-panel glass-panel reveal ${!adminUnlocked ? "admin-hidden" : ""}`}>
             <div className="listing-head"><h3>Recent Orders</h3><button className="button ghost small-button" type="button" onClick={loadOrders}>Refresh</button></div>
             <p className="form-note">{ordersNote}</p>
             <div className="orders-list">
@@ -901,7 +1156,9 @@ export default function Home() {
       <div className={`cart-drawer ${cartOpen ? "open" : ""}`} aria-hidden={!cartOpen} onClick={(event) => { if (event.currentTarget === event.target) setCartOpen(false); }}>
         <aside className="cart-panel glass-panel">
           <div className="cart-head"><h3>Your Cart</h3><button className="icon-button" type="button" onClick={() => setCartOpen(false)}>×</button></div>
-          <CartItems items={cartItems} onRemove={removeFromCart} />
+          <div className="cart-items">
+            <CartItems items={cartItems} onRemove={removeFromCart} />
+          </div>
           <div className="summary-line"><span>Total</span><strong>{rupee.format(cartTotal)}</strong></div>
           <button className="button primary full-width" type="button" onClick={() => { setCartOpen(false); navigate("checkout"); }}>Checkout</button>
         </aside>
@@ -914,7 +1171,7 @@ export default function Home() {
 
 function SectionHeading({ eyebrow, title, text }) {
   return (
-    <div className="section-heading reveal visible">
+    <div className="section-heading reveal">
       <p className="eyebrow">{eyebrow}</p>
       <h2>{title}</h2>
       <p>{text}</p>
@@ -922,29 +1179,9 @@ function SectionHeading({ eyebrow, title, text }) {
   );
 }
 
-function HeroBottle() {
-  return (
-    <div className="hero-product reveal visible" aria-label="Premium attar bottle showcase">
-      <div className="product-orbit" />
-      <div className="bottle-scene">
-        <div className="bottle-cap" />
-        <div className="bottle-neck" />
-        <div className="bottle-body">
-          <i className="bottle-crown" aria-hidden="true" />
-          <span className="bottle-logo">MSJ</span>
-          <small>Attar</small>
-          <strong>Oud<br />Al Haram</strong>
-          <em>6ML</em>
-        </div>
-        <div className="bottle-glow" />
-      </div>
-    </div>
-  );
-}
-
 function ProductCard({ product, onAdd, onView }) {
   return (
-    <article className="product-card glass-panel reveal visible">
+    <article className="product-card reveal">
       <ProductArt product={product} />
       <div className="product-card-body">
         <p className="eyebrow">{product.type} / {product.size}</p>
@@ -1000,7 +1237,7 @@ function CartItems({ items, onRemove }) {
 
 function CartSummary({ items, total, onRemove }) {
   return (
-    <aside className="cart-summary glass-panel reveal visible">
+    <aside className="cart-summary glass-panel reveal">
       <h3>Order Summary</h3>
       <div>{items.length ? <CartItems items={items} onRemove={onRemove} /> : <div className="cart-empty"><strong>Your cart is empty</strong><span>Add a signature attar to begin checkout.</span></div>}</div>
       <div className="summary-line"><span>Subtotal</span><strong>{rupee.format(total)}</strong></div>
