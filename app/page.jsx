@@ -892,8 +892,8 @@ export default function Home() {
     const { error } = await supabase.auth.signInWithOtp({
       email: profile.email.trim(),
       options: { 
-        shouldCreateUser: true
-        // Explicitly omit emailRedirectTo to ensure confirmation-link-only magic links do NOT override 6-digit numeric OTPs
+        shouldCreateUser: true,
+        emailRedirectTo: "https://itsmsjwork-ux.github.io/MSJATTAR/"
       }
     });
 

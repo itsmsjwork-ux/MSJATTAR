@@ -1036,7 +1036,7 @@ button {
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  height: 520px; /* Locked height for neat grid aligning */
+  height: 600px; /* Increased height to give plenty of room for full bottle visibility */
   transform-style: preserve-3d;
   will-change: transform;
 }
@@ -1074,7 +1074,7 @@ button {
 }
 
 .product-art {
-  height: 250px;
+  height: 330px; /* Significantly increased image container height to prevent cropping */
   border-radius: var(--radius);
   overflow: hidden;
   display: grid;
@@ -1084,6 +1084,7 @@ button {
   border: 1px solid rgba(255, 255, 255, 0.03);
   margin-bottom: 1.5rem;
   transition: var(--transition);
+  padding: 2rem 1rem; /* Spacing to prevent any crop on cap/bottom */
 }
 
 .product-card:hover .product-art {
@@ -1098,6 +1099,7 @@ button {
   height: auto;
   object-fit: contain !important;
   display: block;
+  margin: 0 auto;
   transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -1454,19 +1456,23 @@ select option {
 
 /* TALL PRODUCT DETAIL VISIBILITY */
 .product-detail .product-art {
-  height: clamp(300px, 40vw, 420px);
+  height: clamp(360px, 45vw, 480px); /* Increased height for full bottle presentation */
   width: 100%;
   background: radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.12) 0%, rgba(0, 0, 0, 0.6) 100%);
   border: 1px solid rgba(212, 175, 55, 0.25);
   border-radius: var(--radius);
   margin: 0;
+  padding: 3rem 2.2rem; /* Spacing to prevent any cropping top/bottom */
 }
 
 .product-detail .product-art img {
   max-height: 100%;
   max-width: 100%;
+  width: auto;
+  height: auto;
   object-fit: contain !important;
   display: block;
+  margin: 0 auto;
 }
 
 .product-detail .product-art .mini-bottle {
@@ -2079,6 +2085,7 @@ select option {
   height: 80px;
   margin: 0;
   flex-shrink: 0;
+  padding: 6px;
 }
 
 .cart-item div {
