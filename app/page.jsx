@@ -152,7 +152,6 @@ function toSupabaseProduct(product) {
     type: product.type,
     size: product.size,
     description: product.description,
-    ingredients: product.ingredients,
     image_url: product.image,
     color: product.color,
     featured: product.featured
@@ -187,7 +186,7 @@ function ProductArt({ product }) {
 
   return (
     <div className="product-art" style={{ "--product": product.color }}>
-      <div className="mini-bottle" style={{ border: `1px solid ${product.color}` }}>
+      <div className="mini-bottle" style={{ border: `1.5px solid ${product.color}` }}>
         <span>MSJ</span>
         <small>{product.size}</small>
       </div>
@@ -203,8 +202,8 @@ function Section({ id, view, className = "", children }) {
   );
 }
 
-/* HIGH-PERFORMANCE BAKHUR SMOKE AND GOLD SPARKLES COMPONENT */
-function BakhurCanvas() {
+/* BAKHUR CANVAS PARTICLE SYSTEM: SMOKE, GOLD DUST & RED EMBER SPARKS */
+function BakhurCanvas({ isActive = true }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -225,30 +224,32 @@ function BakhurCanvas() {
     window.addEventListener("resize", handleResize);
 
     const smokeParticles = [];
-    const maxSmoke = 22; // Balanced for high performance & luxurious feel
+    const maxSmoke = 20;
 
     const goldParticles = [];
-    const maxGold = 35;
+    const maxGold = 30;
+
+    const emberSparks = [];
+    const maxEmbers = 25; // Burning sparks from bottom rock pedestal
 
     class SmokeParticle {
       constructor() {
         this.reset();
-        // Stagger initial spawn positions
         this.y = height * (0.3 + Math.random() * 0.7);
       }
 
       reset() {
-        this.x = width / 2 + (Math.random() * 50 - 25);
-        this.y = height + Math.random() * 40;
-        this.vy = -0.5 - Math.random() * 0.6;
-        this.vx = Math.random() * 0.3 - 0.15;
+        this.x = width / 2 + (Math.random() * 40 - 20);
+        this.y = height + Math.random() * 30;
+        this.vy = -0.4 - Math.random() * 0.5;
+        this.vx = Math.random() * 0.2 - 0.1;
         this.life = 0;
-        this.maxLife = 200 + Math.random() * 100;
-        this.size = 25 + Math.random() * 15;
-        this.maxSize = 85 + Math.random() * 40;
+        this.maxLife = 220 + Math.random() * 100;
+        this.size = 20 + Math.random() * 15;
+        this.maxSize = 90 + Math.random() * 30;
         this.opacity = 0;
-        this.wobbleSpeed = 0.008 + Math.random() * 0.012;
-        this.wobbleAmp = 0.4 + Math.random() * 0.6;
+        this.wobbleSpeed = 0.006 + Math.random() * 0.01;
+        this.wobbleAmp = 0.4 + Math.random() * 0.5;
         this.seed = Math.random() * 100;
       }
 
@@ -257,14 +258,12 @@ function BakhurCanvas() {
         this.x += this.vx + Math.sin(this.life * this.wobbleSpeed + this.seed) * this.wobbleAmp;
         this.life++;
 
-        // Diffusion rate
-        this.size = this.size + (this.maxSize - this.size) * 0.006;
+        this.size = this.size + (this.maxSize - this.size) * 0.005;
 
-        // Opacity transition (slow breath fade)
-        if (this.life < 60) {
-          this.opacity = (this.life / 60) * 0.06;
+        if (this.life < 70) {
+          this.opacity = (this.life / 70) * 0.055;
         } else {
-          this.opacity = 0.06 * (1 - (this.life - 60) / (this.maxLife - 60));
+          this.opacity = 0.055 * (1 - (this.life - 70) / (this.maxLife - 70));
         }
 
         if (this.life >= this.maxLife || this.y < -this.size) {
@@ -278,8 +277,7 @@ function BakhurCanvas() {
           this.x, this.y, 0,
           this.x, this.y, this.size
         );
-        // Rich traditional warm bakhur color tones
-        gradient.addColorStop(0, `rgba(249, 232, 162, ${this.opacity})`);
+        gradient.addColorStop(0, `rgba(249, 235, 172, ${this.opacity})`);
         gradient.addColorStop(0.3, `rgba(212, 175, 55, ${this.opacity * 0.4})`);
         gradient.addColorStop(1, "rgba(5, 4, 3, 0)");
 
@@ -300,12 +298,12 @@ function BakhurCanvas() {
       reset() {
         this.x = Math.random() * width;
         this.y = height + Math.random() * 20;
-        this.vy = -0.5 - Math.random() * 0.9;
+        this.vy = -0.4 - Math.random() * 0.8;
         this.vx = Math.random() * 0.4 - 0.2;
-        this.size = 0.8 + Math.random() * 1.8;
-        this.opacity = 0.15 + Math.random() * 0.65;
+        this.size = 0.7 + Math.random() * 1.5;
+        this.opacity = 0.15 + Math.random() * 0.6;
         this.sparkleSpeed = 0.015 + Math.random() * 0.03;
-        this.seed = Math.random() * 12;
+        this.seed = Math.random() * 15;
       }
 
       update() {
@@ -323,30 +321,81 @@ function BakhurCanvas() {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(249, 232, 162, ${this.opacity})`;
-        ctx.shadowColor = "rgba(212, 175, 55, 0.75)";
-        ctx.shadowBlur = this.size * 2.5;
+        ctx.shadowColor = "rgba(212, 175, 55, 0.8)";
+        ctx.shadowBlur = this.size * 2;
         ctx.fill();
         ctx.restore();
       }
     }
 
-    // Initialize particles
-    for (let i = 0; i < maxSmoke; i++) {
-      smokeParticles.push(new SmokeParticle());
+    class EmberSpark {
+      constructor() {
+        this.reset();
+        this.y = height * (0.2 + Math.random() * 0.8);
+      }
+
+      reset() {
+        // Spawn sparks closer to the center pedestal area
+        this.x = width / 2 + (Math.random() * 70 - 35);
+        this.y = height + Math.random() * 20;
+        this.vy = -1.1 - Math.random() * 1.4; // Hot buoyant speed
+        this.vx = Math.random() * 0.6 - 0.3;
+        this.size = 1.0 + Math.random() * 2.0;
+        this.life = 0;
+        this.maxLife = 90 + Math.random() * 70;
+        this.opacity = 0.5 + Math.random() * 0.5;
+        this.wobbleSpeed = 0.02 + Math.random() * 0.02;
+        this.wobbleAmp = 0.7 + Math.random() * 0.6;
+      }
+
+      update() {
+        this.y += this.vy;
+        this.x += this.vx + Math.sin(this.life * this.wobbleSpeed) * this.wobbleAmp;
+        this.life++;
+
+        // Ember slowly burns out and shrinks
+        this.size = Math.max(0.2, this.size - 0.008);
+
+        if (this.life > this.maxLife - 30) {
+          this.opacity = Math.max(0, this.opacity - 0.035);
+        }
+
+        if (this.life >= this.maxLife || this.y < -10) {
+          this.reset();
+        }
+      }
+
+      draw() {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        // Rich fire orange/red glowing gradient
+        ctx.fillStyle = `rgba(235, 105, 35, ${this.opacity})`;
+        ctx.shadowColor = "rgba(235, 65, 20, 0.95)";
+        ctx.shadowBlur = this.size * 3.5;
+        ctx.fill();
+        ctx.restore();
+      }
     }
-    for (let i = 0; i < maxGold; i++) {
-      goldParticles.push(new GoldParticle());
-    }
+
+    // Populate arrays
+    for (let i = 0; i < maxSmoke; i++) smokeParticles.push(new SmokeParticle());
+    for (let i = 0; i < maxGold; i++) goldParticles.push(new GoldParticle());
+    for (let i = 0; i < maxEmbers; i++) emberSparks.push(new EmberSpark());
 
     const render = () => {
+      if (!isActive) return;
       ctx.clearRect(0, 0, width, height);
-
-      // Blending compositor for premium overlays
       ctx.globalCompositeOperation = "screen";
 
       smokeParticles.forEach((p) => {
         p.update();
         p.draw();
+      });
+
+      emberSparks.forEach((e) => {
+        e.update();
+        e.draw();
       });
 
       goldParticles.forEach((p) => {
@@ -363,7 +412,7 @@ function BakhurCanvas() {
       window.removeEventListener("resize", handleResize);
       cancelAnimationFrame(animationFrameId);
     };
-  }, []);
+  }, [isActive]);
 
   return (
     <div className="bakhur-canvas-container">
@@ -372,7 +421,7 @@ function BakhurCanvas() {
   );
 }
 
-/* INTERACTIVE 3D BOTTLE WITH SMOOTH INTERPOLATING MOUSE TILT */
+/* INTERACTIVE 3D BOTTLE WITH PARALLAX PEDESTAL AND BACKLIGHT */
 function HeroBottle() {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [targetPos, setTargetPos] = useState({ x: 0, y: 0 });
@@ -387,33 +436,42 @@ function HeroBottle() {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
-  // Linear interpolation for silky smooth rotation transitions
+  // Smooth linear interpolation (lerp)
   useEffect(() => {
     let frameId;
-    const updateMotion = () => {
+    const updateParallax = () => {
       setMousePos((prev) => {
         const dx = targetPos.x - prev.x;
         const dy = targetPos.y - prev.y;
         return {
-          x: prev.x + dx * 0.07,
-          y: prev.y + dy * 0.07
+          x: prev.x + dx * 0.05,
+          y: prev.y + dy * 0.05
         };
       });
-      frameId = requestAnimationFrame(updateMotion);
+      frameId = requestAnimationFrame(updateParallax);
     };
-    updateMotion();
+    updateParallax();
     return () => cancelAnimationFrame(frameId);
   }, [targetPos]);
 
   return (
     <div className="hero-product reveal" aria-label="Premium attar bottle showcase">
       <BakhurCanvas />
+      
+      {/* Parallax background glow halo */}
+      <div 
+        className="bottle-glow" 
+        style={{
+          transform: `translate(${mousePos.x * -28}px, ${mousePos.y * -28}px)`
+        }}
+      />
       <div className="product-orbit" />
+      
       <div 
         className="bottle-scene"
         style={{
-          transform: `rotateY(${mousePos.x * 18}deg) rotateX(${-mousePos.y * 14}deg) translateY(${Math.sin(Date.now() / 900) * 8}px)`,
-          transition: "transform 0.05s ease"
+          transform: `rotateY(${mousePos.x * 20}deg) rotateX(${-mousePos.y * 16}deg) translateY(${Math.sin(Date.now() / 900) * 8}px)`,
+          transformStyle: "preserve-3d"
         }}
       >
         <div className="bottle-cap" />
@@ -425,14 +483,68 @@ function HeroBottle() {
           <strong>Oud<br />Al Haram</strong>
           <em>6ML</em>
         </div>
-        <div className="bottle-glow" />
+        
+        {/* Parallax obsidian rock pedestal platform */}
+        <div 
+          className="hero-pedestal"
+          style={{
+            transform: `rotateX(25deg) translate(${mousePos.x * 12}px, ${mousePos.y * 8}px)`
+          }}
+        />
       </div>
     </div>
   );
 }
 
+/* TILT PRODUCT CARD COMPONENT */
+function ProductCard({ product, onAdd, onView }) {
+  const cardRef = useRef(null);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e) => {
+    const card = cardRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5; // -0.5 to 0.5
+    const y = (e.clientY - rect.top) / rect.height - 0.5; // -0.5 to 0.5
+    setTilt({ x: x * 10, y: -y * 10 }); // 10 degrees tilt limit
+  };
+
+  const handleMouseLeave = () => {
+    setTilt({ x: 0, y: 0 });
+  };
+
+  return (
+    <article 
+      ref={cardRef}
+      className="product-card reveal"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        transform: `perspective(1000px) rotateX(${tilt.y}deg) rotateY(${tilt.x}deg) translateY(${tilt.x !== 0 ? -6 : 0}px)`,
+        transition: tilt.x === 0 ? "transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)" : "none"
+      }}
+    >
+      <ProductArt product={product} />
+      <div className="product-card-body">
+        <p className="eyebrow">{product.type} / {product.size}</p>
+        <h3>{product.name}</h3>
+        <p>{product.description}</p>
+        <div className="card-bottom">
+          <strong>{rupee.format(product.price)}</strong>
+          <div>
+            <button className="button ghost small-button" type="button" onClick={() => onView(product.id)}>View</button>
+            <button className="button primary small-button" type="button" onClick={() => onAdd(product)}>Add</button>
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 export default function Home() {
   const [view, setView] = useState("home");
+  const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [products, setProducts] = useState(defaultProducts);
   const [selectedId, setSelectedId] = useState(defaultProducts[0].id);
@@ -490,8 +602,17 @@ export default function Home() {
 
   const relatedProducts = products.filter((product) => product.type === selectedProduct.type && product.id !== selectedProduct.id).slice(0, 3);
 
+  // Cinematic loader timer logic
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 2500); // 2.5 seconds loading screen
+    return () => clearTimeout(timer);
+  }, []);
+
   // Intersection Observer for scroll reveal animations
   useEffect(() => {
+    if (loading) return;
     const reveals = document.querySelectorAll(".reveal");
     const observer = new IntersectionObserver(
       (entries) => {
@@ -507,7 +628,7 @@ export default function Home() {
     return () => {
       reveals.forEach((el) => observer.unobserve(el));
     };
-  }, [view, products]); // runs when catalog updates or section shifts to hook new structures
+  }, [view, products, loading]);
 
   useEffect(() => {
     const syncView = () => {
@@ -869,9 +990,24 @@ export default function Home() {
 
   return (
     <>
+      {/* 11. LUXURY LOADING SCREEN OVERLAY */}
+      <div className={`loader-screen ${!loading ? "fade-out" : ""}`}>
+        <div className="loader-content">
+          <h2 className="loader-logo">
+            MSJ ATTAR
+            <small>Mohammed Shahid Joshiddi</small>
+          </h2>
+          <div className="loader-bar-container">
+            <div className="loader-bar" />
+          </div>
+        </div>
+        <BakhurCanvas isActive={loading} />
+      </div>
+
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
 
+      {/* 7. PREMIUM NAVBAR */}
       <header className="site-header">
         <button className="brand-mark" type="button" onClick={() => navigate("home")} aria-label="MSJ Attar home">
           <span className="brand-seal">
@@ -910,26 +1046,67 @@ export default function Home() {
       </header>
 
       <main>
+        {/* 1. HERO SECTION (CINEMATIC 3D) */}
         <Section id="home" view={view} className="hero">
           <div className="hero-copy reveal">
-            <p className="eyebrow">Premium traditional attars</p>
-            <h1>MSJ Attar</h1>
-            <p className="hero-text">Pure, alcohol-free fragrances crafted with heritage botanicals, precious oils, and a quiet sense of ceremony.</p>
+            <p className="eyebrow">Pure. Luxurious. Timeless.</p>
+            <h1>The Essence<br />Of Luxury</h1>
+            <p className="hero-text">Discover the finest Arabic attars crafted with precision, passion and traditional distillation methods.</p>
             <div className="hero-actions">
-              <button className="button primary" type="button" onClick={() => navigate("catalog")}>Explore Attars</button>
-              <button className="button ghost" type="button" onClick={() => navigate("about")}>Our Heritage</button>
-            </div>
-            <div className="trust-row">
-              <span>Natural oils</span>
-              <span>Small batches</span>
-              <span>Luxury gifting</span>
+              <button className="button primary" type="button" onClick={() => navigate("catalog")}>Explore Collection</button>
+              <button className="button ghost" type="button" onClick={() => navigate("checkout")}>Shop Now</button>
             </div>
           </div>
           <HeroBottle />
         </Section>
 
+        {/* 4. ELITE TRUST BADGES ROW */}
+        {(view === "home" || view === "featured") && (
+          <div className="hero-trust-band reveal">
+            <div className="trust-row">
+              <div className="trust-item">
+                <div className="trust-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <div className="trust-copy">
+                  <strong>Premium Quality</strong>
+                  <span>100% Original Attar</span>
+                </div>
+              </div>
+              <div className="trust-item">
+                <div className="trust-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                </div>
+                <div className="trust-copy">
+                  <strong>Long Lasting</strong>
+                  <span>Up to 24 Hours</span>
+                </div>
+              </div>
+              <div className="trust-item">
+                <div className="trust-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                </div>
+                <div className="trust-copy">
+                  <strong>Natural Ingredients</strong>
+                  <span>Pure & Safe</span>
+                </div>
+              </div>
+              <div className="trust-item">
+                <div className="trust-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                </div>
+                <div className="trust-copy">
+                  <strong>Made With Love</strong>
+                  <span>Crafted with Passion</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 4. PRODUCT CARDS & COLLECTION */}
         <Section id="featured" view={view}>
-          <SectionHeading eyebrow="Best sellers" title="Featured Products" text="Signature attars with deep projection, refined dry-downs, and presentation worthy of a private fragrance cabinet." />
+          <SectionHeading eyebrow="Best Sellers" title="Our Premium Collection" text="Signature attars with deep projection, refined dry-downs, and presentation worthy of a private fragrance cabinet." />
           <div className="featured-grid">
             {products.filter((product) => product.featured).map((product) => (
               <ProductCard key={product.id} product={product} onAdd={addToCart} onView={(id) => { setSelectedId(id); navigate("product"); }} />
@@ -937,6 +1114,7 @@ export default function Home() {
           </div>
         </Section>
 
+        {/* 5. BAKHUR SMOKE SECTION & FULL CATALOG */}
         <Section id="catalog" view={view} className="catalog-shell">
           <SectionHeading eyebrow="Full collection" title="Product Catalog" text="Filter by fragrance family, bottle size, and price to find the right attar for daily wear, gifting, or special occasions." />
           <div className="catalog-layout">
@@ -954,6 +1132,49 @@ export default function Home() {
             </div>
           </div>
         </Section>
+
+        {/* 12. STATS/METRICS BLOCK - Positioned neatly below product lists */}
+        {(view === "home" || view === "catalog" || view === "featured") && (
+          <div className="metrics-band reveal">
+            <div className="metrics-row">
+              <div className="metric-item">
+                <h4>5000+</h4>
+                <span>Happy Customers</span>
+              </div>
+              <div className="metric-item">
+                <h4>50+</h4>
+                <span>Premium Attars</span>
+              </div>
+              <div className="metric-item">
+                <h4>100%</h4>
+                <span>Satisfaction</span>
+              </div>
+              <div className="metric-item">
+                <h4>24H</h4>
+                <span>Long Lasting</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 12. "THE ART OF PERFUME" VIDEO LAYOUT */}
+        {(view === "home" || view === "about") && (
+          <Section id="art-of-perfume" view={view}>
+            <div className="promo-section reveal">
+              <div className="promo-copy">
+                <p className="eyebrow">The Art of Perfume</p>
+                <h2>Crafted For Connoisseurs</h2>
+                <p>Each attar is a masterpiece crafted with the finest ingredients and traditional steam-distillation techniques. We blend decades of heritage with luxurious presentation, yielding pure, alcohol-free fragrance rituals that project absolute elegance.</p>
+                <button className="button primary" type="button" onClick={() => navigate("catalog")}>Discover More</button>
+              </div>
+              <div className="promo-video-scene">
+                <div className="play-button" aria-label="Play fragrance story video">
+                  <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+              </div>
+            </div>
+          </Section>
+        )}
 
         <Section id="product" view={view}>
           <SectionHeading eyebrow="Selected attar" title={selectedProduct.name} text={selectedProduct.description} />
@@ -1176,26 +1397,6 @@ function SectionHeading({ eyebrow, title, text }) {
       <h2>{title}</h2>
       <p>{text}</p>
     </div>
-  );
-}
-
-function ProductCard({ product, onAdd, onView }) {
-  return (
-    <article className="product-card reveal">
-      <ProductArt product={product} />
-      <div className="product-card-body">
-        <p className="eyebrow">{product.type} / {product.size}</p>
-        <h3>{product.name}</h3>
-        <p>{product.description}</p>
-        <div className="card-bottom">
-          <strong>{rupee.format(product.price)}</strong>
-          <div>
-            <button className="button ghost small-button" type="button" onClick={() => onView(product.id)}>View</button>
-            <button className="button primary small-button" type="button" onClick={() => onAdd(product)}>Add</button>
-          </div>
-        </div>
-      </div>
-    </article>
   );
 }
 
