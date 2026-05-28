@@ -267,19 +267,6 @@ button {
   100% { transform: translateX(100%); }
 }
 
-/* Custom cursor glow overlay */
-.cursor-glow {
-  position: fixed;
-  width: 380px;
-  height: 380px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(212, 175, 55, 0.05) 0%, transparent 70%);
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  z-index: 9999;
-  mix-blend-mode: screen;
-}
-
 /* Site Header and Luxury Navbar */
 .site-header {
   position: fixed;
@@ -612,22 +599,20 @@ button {
   border: 1px solid var(--gold);
 }
 
-/* Metallic gold sweep shimmer effect on hover */
-.button.primary::after {
+.button.primary::before {
   content: "";
   position: absolute;
-  top: -50%;
-  left: -60%;
-  width: 30%;
-  height: 200%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.38), transparent);
-  transform: rotate(30deg);
-  transition: none;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transition: var(--transition);
 }
 
-.button.primary:hover::after {
-  left: 140%;
-  transition: all 0.8s ease-in-out;
+.button.primary:hover::before {
+  left: 100%;
+  transition: 0.8s ease;
 }
 
 .button.primary:hover {
@@ -1080,7 +1065,7 @@ button {
   display: grid;
   place-items: center;
   position: relative;
-  background: radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.08) 0%, rgba(0, 0, 0, 0.4) 100%);
+  background: radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.08) 0%, rgba(0, 0, 0, 0.5) 100%);
   border: 1px solid rgba(255, 255, 255, 0.03);
   margin-bottom: 1.5rem;
   transition: var(--transition);
@@ -1091,6 +1076,7 @@ button {
   background: radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.18) 0%, rgba(0, 0, 0, 0.6) 100%);
 }
 
+<<<<<<< HEAD
 /* ENFORCE FULL VISIBILITY - CONTAIN BOTTLE IN CARDS */
 .product-art img {
   max-height: 100%;
@@ -1101,12 +1087,17 @@ button {
   display: block;
   margin: 0 auto;
   transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+=======
+.product-art.image-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* ENFORCE FULL VISIBILITY - CONTAIN BOTTLE */
+  transition: transform 0.8s ease;
+>>>>>>> parent of bd415b0 (design: Implement master redesign, full-bottle visibilities, step-based OTP auth fix, and email regex checks)
 }
 
-/* Bottle zoom scaling hover animation */
-.product-card:hover .product-art img,
-.product-card:hover .product-art .mini-bottle {
-  transform: scale(1.08) translateY(-4px);
+.product-card:hover .product-art.image-art img {
+  transform: scale(1.06);
 }
 
 /* CSS Rendered Mini Luxury Bottle in Card - Taller & Highly visble */
@@ -1122,7 +1113,6 @@ button {
   align-items: center;
   justify-content: center;
   box-shadow: 0 12px 28px rgba(0,0,0,0.75), inset 0 0 18px rgba(var(--gold-rgb), 0.22);
-  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .mini-bottle::before {
@@ -1454,6 +1444,7 @@ select option {
   margin-bottom: 4rem;
 }
 
+<<<<<<< HEAD
 /* TALL PRODUCT DETAIL VISIBILITY */
 .product-detail .product-art {
   height: clamp(360px, 45vw, 480px); /* Increased height for full bottle presentation */
@@ -1486,6 +1477,8 @@ select option {
   height: 22px;
 }
 
+=======
+>>>>>>> parent of bd415b0 (design: Implement master redesign, full-bottle visibilities, step-based OTP auth fix, and email regex checks)
 .product-gallery {
   display: flex;
   flex-direction: column;
@@ -1676,13 +1669,6 @@ select option {
   border: 1px solid rgba(212, 175, 55, 0.15);
   padding: 0.8rem 1rem;
   border-radius: 4px;
-}
-
-/* Form warning feedback */
-.form-note.error-feedback {
-  background: rgba(138, 31, 46, 0.1);
-  border-color: rgba(138, 31, 46, 0.3);
-  color: #ff99a8;
 }
 
 .field-row {

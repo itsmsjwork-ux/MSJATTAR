@@ -175,12 +175,6 @@ function fromSupabaseOrder(order) {
   };
 }
 
-// Robust Email Validation Regex Helper
-function isValidEmail(email) {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return re.test(String(email).toLowerCase().trim());
-}
-
 function ProductArt({ product }) {
   if (product.image) {
     return (
@@ -341,6 +335,7 @@ function BakhurCanvas({ isActive = true, showSparks = true, showGoldParticles = 
       }
 
       reset() {
+        // Spawn sparks closer to the center pedestal area
         this.x = width / 2 + (Math.random() * 70 - 35);
         this.y = height + Math.random() * 20;
         this.vy = -1.1 - Math.random() * 1.4; // Hot buoyant speed
@@ -358,6 +353,7 @@ function BakhurCanvas({ isActive = true, showSparks = true, showGoldParticles = 
         this.x += this.vx + Math.sin(this.life * this.wobbleSpeed) * this.wobbleAmp;
         this.life++;
 
+        // Ember slowly burns out and shrinks
         this.size = Math.max(0.2, this.size - 0.008);
 
         if (this.life > this.maxLife - 30) {
@@ -373,6 +369,7 @@ function BakhurCanvas({ isActive = true, showSparks = true, showGoldParticles = 
         ctx.save();
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        // Rich fire orange/red glowing gradient
         ctx.fillStyle = `rgba(235, 105, 35, ${this.opacity})`;
         ctx.shadowColor = "rgba(235, 65, 20, 0.95)";
         ctx.shadowBlur = this.size * 3.5;
@@ -381,6 +378,7 @@ function BakhurCanvas({ isActive = true, showSparks = true, showGoldParticles = 
       }
     }
 
+    // Populate arrays
     for (let i = 0; i < maxSmoke; i++) smokeParticles.push(new SmokeParticle());
     for (let i = 0; i < maxGold; i++) goldParticles.push(new GoldParticle());
     for (let i = 0; i < maxEmbers; i++) emberSparks.push(new EmberSpark());
@@ -430,14 +428,15 @@ function HeroBottle({ showSparks = true, showGoldParticles = true }) {
 
   useEffect(() => {
     const handleMouseMove = (e) => {
-      const x = (e.clientX / window.innerWidth) * 2 - 1;
-      const y = (e.clientY / window.innerHeight) * 2 - 1;
+      const x = (e.clientX / window.innerWidth) * 2 - 1; // -1 to 1 range
+      const y = (e.clientY / window.innerHeight) * 2 - 1; // -1 to 1 range
       setTargetPos({ x, y });
     };
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
+  // Smooth linear interpolation (lerp)
   useEffect(() => {
     let frameId;
     const updateParallax = () => {
@@ -459,6 +458,7 @@ function HeroBottle({ showSparks = true, showGoldParticles = true }) {
     <div className="hero-product reveal" aria-label="Premium attar bottle showcase">
       <BakhurCanvas showSparks={showSparks} showGoldParticles={showGoldParticles} />
       
+      {/* Parallax background glow halo */}
       <div 
         className="bottle-glow" 
         style={{
@@ -484,6 +484,7 @@ function HeroBottle({ showSparks = true, showGoldParticles = true }) {
           <em>6ML</em>
         </div>
         
+        {/* Parallax obsidian rock pedestal platform */}
         <div 
           className="hero-pedestal"
           style={{
@@ -505,9 +506,9 @@ function ProductCard({ product, onAdd, onView, wishlist = [], onToggleWishlist }
     const card = cardRef.current;
     if (!card) return;
     const rect = card.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    setTilt({ x: x * 10, y: -y * 10 });
+    const x = (e.clientX - rect.left) / rect.width - 0.5; // -0.5 to 0.5
+    const y = (e.clientY - rect.top) / rect.height - 0.5; // -0.5 to 0.5
+    setTilt({ x: x * 10, y: -y * 10 }); // 10 degrees tilt limit
   };
 
   const handleMouseLeave = () => {
@@ -573,15 +574,7 @@ export default function Home() {
   const [orderNote, setOrderNote] = useState("Orders will be saved to your Supabase dashboard.");
   const [contactNote, setContactNote] = useState("Messages are sent to MSJ Attar email.");
   const [customerSession, setCustomerSession] = useState(null);
-  
-  // Custom Step-based OTP Flow and Validation States
-  const [otpStep, setOtpStep] = useState(1); // 1 = Enter Email, 2 = Enter 6-digit OTP
-  const [loadingOtp, setLoadingOtp] = useState(false);
   const [customerNote, setCustomerNote] = useState("Enter your email and verify the OTP sent to your inbox.");
-  const [otpError, setOtpError] = useState(false);
-  const [orderError, setOrderError] = useState(false);
-  const [contactError, setContactError] = useState(false);
-
   const [customerOrders, setCustomerOrders] = useState([]);
   const [profileNote, setProfileNote] = useState("Login to save and reuse your address at checkout.");
   const [profile, setProfile] = useState({ name: "", email: "", phone: "", city: "", address: "" });
@@ -595,6 +588,7 @@ export default function Home() {
     payment: "Cash on delivery"
   });
 
+<<<<<<< HEAD
   // Cursor Trail Tracking State
   const [cursorPos, setCursorPos] = useState({ x: -100, y: -100 });
 
@@ -733,6 +727,8 @@ export default function Home() {
     }
   };
 
+=======
+>>>>>>> parent of bd415b0 (design: Implement master redesign, full-bottle visibilities, step-based OTP auth fix, and email regex checks)
   const selectedProduct = products.find((product) => product.id === selectedId) || products[0];
   const customerEmail = customerSession?.user?.email && customerSession.user.email !== ADMIN_EMAIL ? customerSession.user.email : "";
 
@@ -760,20 +756,11 @@ export default function Home() {
 
   const relatedProducts = products.filter((product) => product.type === selectedProduct.type && product.id !== selectedProduct.id).slice(0, 3);
 
-  // Mouse trail tracker
-  useEffect(() => {
-    const handleCursorMove = (e) => {
-      setCursorPos({ x: e.clientX, y: e.clientY });
-    };
-    window.addEventListener("mousemove", handleCursorMove);
-    return () => window.removeEventListener("mousemove", handleCursorMove);
-  }, []);
-
   // Cinematic loader timer logic
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 2500);
+    }, 2500); // 2.5 seconds loading screen
     return () => clearTimeout(timer);
   }, []);
 
@@ -1015,111 +1002,66 @@ export default function Home() {
     setAdminNote("Sign in with the Supabase admin account to unlock listing controls.");
   }
 
-  // FIXED CUSTOMER OTP FLOW WITH EMAIL VALIDATION & EXPLICIT 6-DIGIT CODE
   async function sendCustomerOtp() {
-    setOtpError(false);
     if (!profile.email) {
-      setOtpError(true);
-      setCustomerNote("Please enter your email address first.");
+      setCustomerNote("Please enter your email first.");
       return;
     }
-    if (!isValidEmail(profile.email)) {
-      setOtpError(true);
-      setCustomerNote("Please enter a valid email address.");
+    if (profile.email === ADMIN_EMAIL) {
+      setCustomerNote("Admin email is only for admin panel. Use a customer email here.");
       return;
     }
-    if (profile.email.trim().toLowerCase() === ADMIN_EMAIL) {
-      setOtpError(true);
-      setCustomerNote("Admin email is restricted to the Admin panel. Use a different customer email.");
-      return;
-    }
-
-    setCustomerNote("Sending 6-digit OTP code...");
-    setLoadingOtp(true);
-
+    setCustomerNote("Sending OTP...");
     const { error } = await supabase.auth.signInWithOtp({
+<<<<<<< HEAD
       email: profile.email.trim(),
       options: { 
         shouldCreateUser: true,
         emailRedirectTo: "https://itsmsjwork-ux.github.io/MSJATTAR/"
       }
+=======
+      email: profile.email,
+      options: { shouldCreateUser: true }
+>>>>>>> parent of bd415b0 (design: Implement master redesign, full-bottle visibilities, step-based OTP auth fix, and email regex checks)
     });
-
-    setLoadingOtp(false);
-
-    if (error) {
-      setOtpError(true);
-      setCustomerNote(`OTP failed: ${error.message}`);
-    } else {
-      setCustomerNote("6-digit code sent. Please check your inbox and enter the OTP below.");
-      setOtpStep(2); // Switch to Verification input step smoothly
-    }
+    setCustomerNote(error ? `OTP failed: ${error.message}` : "OTP sent. Check your email inbox.");
   }
 
   async function verifyCustomerOtp(event) {
     event.preventDefault();
-    setOtpError(false);
     const formData = new FormData(event.currentTarget);
-    const email = profile.email.trim();
-    const token = formData.get("otp")?.trim();
-
+    const email = profile.email;
+    const token = formData.get("otp");
     if (!email || !token) {
-      setOtpError(true);
-      setCustomerNote("Please enter your email and the 6-digit code.");
+      setCustomerNote("Please enter email and OTP.");
       return;
     }
-
-    setCustomerNote("Verifying code...");
-    setLoadingOtp(true);
-
-    const { data, error } = await supabase.auth.verifyOtp({ 
-      email, 
-      token, 
-      type: "email" 
-    });
-
-    setLoadingOtp(false);
-
+    const { data, error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
     if (error) {
-      setOtpError(true);
-      setCustomerNote(`Verification failed: ${error.message}. Please check your code.`);
-    } else {
-      setAdminUnlocked(false);
-      setCustomerSession(data.session);
-      setCustomerNote(`Successfully signed in as ${email}.`);
-      setOtpStep(1);
+      setCustomerNote(`Login failed: ${error.message}`);
+      return;
     }
+    setAdminUnlocked(false);
+    setCustomerSession(data.session);
+    setCustomerNote(`Signed in as ${email}.`);
   }
 
   async function customerSignOut() {
     await supabase.auth.signOut();
     setCustomerSession(null);
     setCustomerOrders([]);
-    setOtpStep(1);
     setCustomerNote("Enter your email and verify the OTP sent to your inbox.");
   }
 
-  // FIXED CHECKOUT SUBMIT WITH ROBUST EMAIL VALIDATION
   async function submitOrder(event) {
     event.preventDefault();
-    setOrderError(false);
-
     if (!cartCount) {
-      setOrderError(true);
       setOrderNote("Please add at least one product to cart before placing an order.");
       return;
     }
-
-    const emailInput = customerEmail || checkout.email.trim();
-    if (!isValidEmail(emailInput)) {
-      setOrderError(true);
-      setOrderNote("Please enter a valid email address");
-      return;
-    }
-
     const payload = {
       customer_name: checkout.name.trim(),
-      customer_email: emailInput,
+      customer_email: customerEmail || checkout.email.trim(),
       customer_phone: checkout.phone.trim(),
       city: checkout.city.trim(),
       address: checkout.address.trim(),
@@ -1136,23 +1078,17 @@ export default function Home() {
       total_amount: cartTotal,
       status: "new"
     };
-
-    if (!payload.customer_name || !payload.customer_phone || !payload.address || !payload.city) {
-      setOrderError(true);
-      setOrderNote("Please fill in your name, phone, city, and full delivery address.");
+    if (!payload.customer_name || !payload.customer_email || !payload.customer_phone || !payload.address || !payload.city) {
+      setOrderNote("Please fill name, email, phone, city, and address.");
       return;
     }
-
     if (customerEmail) await saveCustomerProfile({ ...checkout, email: customerEmail });
     setOrderNote("Placing order...");
-
     const { error } = await supabase.from("orders").insert(payload);
     if (error) {
-      setOrderError(true);
       setOrderNote(`Order failed: ${error.message}`);
       return;
     }
-
     setCart({});
     setOrderNote("Order placed successfully. We will contact you soon.");
     if (adminUnlocked) await loadOrders();
@@ -1165,19 +1101,9 @@ export default function Home() {
     if (!error) await loadOrders();
   }
 
-  // FIXED CONTACT WITH ROBUST EMAIL VALIDATION
   async function submitContact(event) {
     event.preventDefault();
-    setContactError(false);
     const formData = new FormData(event.currentTarget);
-    const email = formData.get("email")?.trim();
-
-    if (!isValidEmail(email)) {
-      setContactError(true);
-      setContactNote("Please enter a valid email address");
-      return;
-    }
-
     setContactNote("Sending message...");
     try {
       const response = await fetch(CONTACT_ENDPOINT, {
@@ -1226,7 +1152,7 @@ export default function Home() {
 
   return (
     <>
-      {/* 9. PREMIUM LOADING SCREEN */}
+      {/* 11. LUXURY LOADING SCREEN OVERLAY */}
       <div className={`loader-screen ${!loading ? "fade-out" : ""}`}>
         <div className="loader-content">
           <h2 className="loader-logo">
@@ -1240,19 +1166,10 @@ export default function Home() {
         <BakhurCanvas isActive={loading} />
       </div>
 
-      {/* 4. CURSOR GLOW TRAIL EFFECT */}
-      <div 
-        className="cursor-glow" 
-        style={{
-          left: `${cursorPos.x}px`,
-          top: `${cursorPos.y}px`
-        }}
-      />
-
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
 
-      {/* 5. PREMIUM NAVBAR */}
+      {/* 7. PREMIUM NAVBAR */}
       <header className="site-header">
         <button className="brand-mark" type="button" onClick={() => navigate("home")} aria-label="MSJ Attar home">
           <span className="brand-seal">
@@ -1291,7 +1208,7 @@ export default function Home() {
       </header>
 
       <main>
-        {/* 2. ULTRA PREMIUM 3D HERO SECTION */}
+        {/* 1. HERO SECTION (CINEMATIC 3D) */}
         <Section id="home" view={view} className="hero">
           <div className="hero-copy reveal">
             <p className="eyebrow">Pure. Luxurious. Timeless.</p>
@@ -1305,7 +1222,7 @@ export default function Home() {
           <HeroBottle showSparks={showSparks} showGoldParticles={showGoldParticles} />
         </Section>
 
-        {/* 10. TRUST SECTION */}
+        {/* 4. ELITE TRUST BADGES ROW */}
         {(view === "home" || view === "featured") && (
           <div className="hero-trust-band reveal">
             <div className="trust-row">
@@ -1349,7 +1266,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* 3. PRODUCT CARD REDESIGN */}
+        {/* 4. PRODUCT CARDS & COLLECTION */}
         <Section id="featured" view={view}>
           <SectionHeading eyebrow="Best Sellers" title="Our Premium Collection" text="Signature attars with deep projection, refined dry-downs, and presentation worthy of a private fragrance cabinet." />
           <div className="featured-grid">
@@ -1359,7 +1276,7 @@ export default function Home() {
           </div>
         </Section>
 
-        {/* CATALOG WITH CUSTOM SCROLL OBSERVERS */}
+        {/* 5. BAKHUR SMOKE SECTION & FULL CATALOG */}
         <Section id="catalog" view={view} className="catalog-shell">
           <SectionHeading eyebrow="Full collection" title="Product Catalog" text="Filter by fragrance family, bottle size, and price to find the right attar for daily wear, gifting, or special occasions." />
           <div className="catalog-layout">
@@ -1378,7 +1295,7 @@ export default function Home() {
           </div>
         </Section>
 
-        {/* 10. METRICS SECTION */}
+        {/* 12. STATS/METRICS BLOCK - Positioned neatly below product lists */}
         {(view === "home" || view === "catalog" || view === "featured") && (
           <div className="metrics-band reveal">
             <div className="metrics-row">
@@ -1402,7 +1319,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* THE ART OF PERFUME SECONDARY PROMO SECTION */}
+        {/* 12. "THE ART OF PERFUME" VIDEO LAYOUT */}
         {(view === "home" || view === "about") && (
           <Section id="art-of-perfume" view={view}>
             <div className="promo-section reveal">
@@ -1462,6 +1379,7 @@ export default function Home() {
           </div>
         </Section>
 
+<<<<<<< HEAD
         {/* 7. REDESIGNED LUXURY E-COMMERCE SIDEBAR DASHBOARD */}
         <Section id="account" view={view} className="account-section">
           {!customerEmail ? (
@@ -1493,6 +1411,46 @@ export default function Home() {
                       {loadingOtp ? "Sending Secure Code..." : "Send Verification OTP"}
                     </button>
                   </div>
+=======
+        <Section id="account" view={view} className="account-section">
+          <SectionHeading eyebrow="My account" title="Login & Orders" text="Customers can sign in with email OTP, save delivery details, and view recent orders." />
+          <div className="account-layout">
+            <form className="account-card glass-panel reveal" onSubmit={verifyCustomerOtp}>
+              <h3>Sign in</h3>
+              <p className="form-note">{customerNote}</p>
+              <label>Email <input type="email" value={profile.email} onChange={(event) => setProfile({ ...profile, email: event.target.value })} placeholder="you@example.com" required /></label>
+              <button className="button ghost full-width" type="button" onClick={sendCustomerOtp}>Send OTP</button>
+              <label>OTP <input name="otp" type="text" inputMode="numeric" placeholder="Enter OTP" /></label>
+              <button className="button primary full-width" type="submit">Verify & Login</button>
+              <button className={`button ghost full-width ${!customerEmail ? "admin-hidden" : ""}`} type="button" onClick={customerSignOut}>Sign Out</button>
+            </form>
+
+            <form className="account-card glass-panel reveal" onSubmit={(event) => { event.preventDefault(); saveCustomerProfile(profile); }}>
+              <h3>Saved details</h3>
+              <p className="form-note">{profileNote}</p>
+              <div className="field-row">
+                <label>Full Name <input value={profile.name} onChange={(event) => setProfile({ ...profile, name: event.target.value })} placeholder="Your name" /></label>
+                <label>Phone <input value={profile.phone} onChange={(event) => setProfile({ ...profile, phone: event.target.value })} placeholder="+91 98765 43210" /></label>
+              </div>
+              <div className="field-row">
+                <label>City <input value={profile.city} onChange={(event) => setProfile({ ...profile, city: event.target.value })} placeholder="Your city" /></label>
+                <label>Email <input value={customerEmail} readOnly placeholder="Login first" /></label>
+              </div>
+              <label>Address <input value={profile.address} onChange={(event) => setProfile({ ...profile, address: event.target.value })} placeholder="Street, city, postal code" /></label>
+              <button className="button primary full-width" type="submit">Save Details</button>
+            </form>
+
+            <div className="account-card glass-panel reveal">
+              <div className="listing-head">
+                <h3>My orders</h3>
+                <button className="button ghost small-button" type="button" onClick={() => loadCustomerOrders()}>Refresh</button>
+              </div>
+              <div className="customer-orders-list">
+                {!customerEmail ? (
+                  <div className="order-card"><strong>Login required</strong><span>Your orders will appear here after email login.</span></div>
+                ) : customerOrders.length ? (
+                  customerOrders.map((order) => <OrderCard key={order.id} order={order} />)
+>>>>>>> parent of bd415b0 (design: Implement master redesign, full-bottle visibilities, step-based OTP auth fix, and email regex checks)
                 ) : (
                   <form onSubmit={verifyCustomerOtp} style={{ display: "grid", gap: "1.5rem" }}>
                     <div className="input-group">
@@ -1808,7 +1766,6 @@ export default function Home() {
           )}
         </Section>
 
-        {/* 8. CHECKOUT WITH VALIDATION */}
         <Section id="checkout" view={view} className="checkout-section">
           <SectionHeading eyebrow="Premium checkout" title="Checkout Experience" text="A smooth three-step purchase flow for fragrance lovers who already know what they want." />
           <div className="checkout-layout">
@@ -1832,13 +1789,12 @@ export default function Home() {
                 <label>Payment <select value={checkout.payment} onChange={(event) => setCheckout({ ...checkout, payment: event.target.value })}><option>Cash on delivery</option><option>UPI / Card</option></select></label>
               </div>
               <button className="button primary full-width" type="submit">Place Order</button>
-              <p className={`form-note ${orderError ? "error-feedback" : ""}`}>{orderNote}</p>
+              <p className="form-note">{orderNote}</p>
             </form>
             <CartSummary items={cartItems} total={cartTotal} onRemove={removeFromCart} />
           </div>
         </Section>
 
-        {/* 8. CONTACT FORM WITH VALIDATION */}
         <Section id="contact" view={view} className="contact-section">
           <SectionHeading eyebrow="Contact" title="Speak With MSJ Attar" text="For gifting, wholesale, custom selections, and private fragrance consultation." />
           <div className="contact-layout">
@@ -1847,7 +1803,7 @@ export default function Home() {
               <label>Email <input name="email" type="email" placeholder="you@example.com" required /></label>
               <label>Message <textarea name="message" rows="5" placeholder="Tell us what you are looking for" required /></label>
               <button className="button primary" type="submit">Send Message</button>
-              <p className={`form-note ${contactError ? "error-feedback" : ""}`}>{contactNote}</p>
+              <p className="form-note">{contactNote}</p>
             </form>
             <div className="social-links glass-panel reveal">
               <h3>Social Links</h3>
