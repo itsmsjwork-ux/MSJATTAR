@@ -209,7 +209,7 @@ function Section({ id, view, className = "", children }) {
 }
 
 /* BAKHUR CANVAS PARTICLE SYSTEM: SMOKE, GOLD DUST & RED EMBER SPARKS */
-function BakhurCanvas({ isActive = true }) {
+function BakhurCanvas({ isActive = true, showSparks = true, showGoldParticles = true }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -233,10 +233,10 @@ function BakhurCanvas({ isActive = true }) {
     const maxSmoke = 20;
 
     const goldParticles = [];
-    const maxGold = 30;
+    const maxGold = showGoldParticles ? 30 : 0;
 
     const emberSparks = [];
-    const maxEmbers = 25; // Burning sparks from bottom rock pedestal
+    const maxEmbers = showSparks ? 25 : 0; // Burning sparks from bottom rock pedestal
 
     class SmokeParticle {
       constructor() {
@@ -414,7 +414,7 @@ function BakhurCanvas({ isActive = true }) {
       window.removeEventListener("resize", handleResize);
       cancelAnimationFrame(animationFrameId);
     };
-  }, [isActive]);
+  }, [isActive, showSparks, showGoldParticles]);
 
   return (
     <div className="bakhur-canvas-container">
@@ -424,7 +424,7 @@ function BakhurCanvas({ isActive = true }) {
 }
 
 /* INTERACTIVE 3D BOTTLE WITH PARALLAX PEDESTAL AND BACKLIGHT */
-function HeroBottle() {
+function HeroBottle({ showSparks = true, showGoldParticles = true }) {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [targetPos, setTargetPos] = useState({ x: 0, y: 0 });
 
@@ -457,7 +457,7 @@ function HeroBottle() {
 
   return (
     <div className="hero-product reveal" aria-label="Premium attar bottle showcase">
-      <BakhurCanvas />
+      <BakhurCanvas showSparks={showSparks} showGoldParticles={showGoldParticles} />
       
       <div 
         className="bottle-glow" 
@@ -496,9 +496,10 @@ function HeroBottle() {
 }
 
 /* TILT PRODUCT CARD COMPONENT */
-function ProductCard({ product, onAdd, onView }) {
+function ProductCard({ product, onAdd, onView, wishlist = [], onToggleWishlist }) {
   const cardRef = useRef(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const isWishlisted = wishlist.includes(product.id);
 
   const handleMouseMove = (e) => {
     const card = cardRef.current;
@@ -524,6 +525,18 @@ function ProductCard({ product, onAdd, onView }) {
         transition: tilt.x === 0 ? "transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)" : "none"
       }}
     >
+      {onToggleWishlist && (
+        <button 
+          type="button" 
+          className={`wishlist-heart-btn ${isWishlisted ? "active" : ""}`}
+          onClick={(e) => { e.stopPropagation(); onToggleWishlist(product.id); }}
+          aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+        >
+          <svg viewBox="0 0 24 24" fill={isWishlisted ? "var(--gold)" : "none"} stroke={isWishlisted ? "var(--gold)" : "currentColor"} strokeWidth="1.5">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+        </button>
+      )}
       <ProductArt product={product} />
       <div className="product-card-body">
         <p className="eyebrow">{product.type} / {product.size}</p>
@@ -584,6 +597,141 @@ export default function Home() {
 
   // Cursor Trail Tracking State
   const [cursorPos, setCursorPos] = useState({ x: -100, y: -100 });
+
+  const [activeTab, setActiveTab] = useState("profile");
+  const [wishlist, setWishlist] = useState([]);
+  const [addresses, setAddresses] = useState([]);
+  const [addressForm, setAddressForm] = useState(null);
+  const [showSparks, setShowSparks] = useState(true);
+  const [showGoldParticles, setShowGoldParticles] = useState(true);
+
+  // Load customer addresses and wishlist
+  useEffect(() => {
+    const emailKey = customerEmail || "anonymous";
+    const savedWishlist = JSON.parse(localStorage.getItem(`msj-wishlist:${emailKey}`) || "[]");
+    setWishlist(savedWishlist);
+
+    if (customerEmail) {
+      const savedAddresses = JSON.parse(localStorage.getItem(`msj-addresses:${customerEmail}`) || "[]");
+      if (savedAddresses.length > 0) {
+        setAddresses(savedAddresses);
+      } else {
+        if (profile.address || profile.city) {
+          const initialAddress = {
+            id: "addr-" + Date.now(),
+            name: profile.name || "",
+            phone: profile.phone || "",
+            city: profile.city || "",
+            address: profile.address || "",
+            label: "Home",
+            isDefault: true
+          };
+          const list = [initialAddress];
+          setAddresses(list);
+          localStorage.setItem(`msj-addresses:${customerEmail}`, JSON.stringify(list));
+        } else {
+          setAddresses([]);
+        }
+      }
+    } else {
+      setAddresses([]);
+    }
+  }, [customerEmail, profile.address, profile.city, profile.name, profile.phone]);
+
+  const toggleWishlist = (productId) => {
+    const emailKey = customerEmail || "anonymous";
+    setWishlist((current) => {
+      const next = current.includes(productId)
+        ? current.filter((id) => id !== productId)
+        : [...current, productId];
+      localStorage.setItem(`msj-wishlist:${emailKey}`, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const saveAddress = (addr) => {
+    if (!customerEmail) return;
+    let nextAddresses = [...addresses];
+    if (addr.isDefault) {
+      nextAddresses = nextAddresses.map((a) => ({ ...a, isDefault: false }));
+    }
+    if (addr.id) {
+      nextAddresses = nextAddresses.map((a) => (a.id === addr.id ? addr : a));
+    } else {
+      const newAddr = { ...addr, id: "addr-" + Date.now() };
+      nextAddresses.push(newAddr);
+    }
+
+    if (nextAddresses.length > 0 && !nextAddresses.some((a) => a.isDefault)) {
+      nextAddresses[0].isDefault = true;
+    }
+
+    setAddresses(nextAddresses);
+    localStorage.setItem(`msj-addresses:${customerEmail}`, JSON.stringify(nextAddresses));
+
+    const defaultAddr = nextAddresses.find((a) => a.isDefault);
+    if (defaultAddr) {
+      const updatedProfile = {
+        ...profile,
+        name: defaultAddr.name,
+        phone: defaultAddr.phone,
+        city: defaultAddr.city,
+        address: defaultAddr.address
+      };
+      saveCustomerProfile(updatedProfile);
+    }
+    setAddressForm(null);
+  };
+
+  const deleteAddress = (id) => {
+    if (!customerEmail) return;
+    let nextAddresses = addresses.filter((a) => a.id !== id);
+    if (addresses.find((a) => a.id === id)?.isDefault && nextAddresses.length > 0) {
+      nextAddresses[0].isDefault = true;
+    }
+    setAddresses(nextAddresses);
+    localStorage.setItem(`msj-addresses:${customerEmail}`, JSON.stringify(nextAddresses));
+
+    const defaultAddr = nextAddresses.find((a) => a.isDefault);
+    if (defaultAddr) {
+      const updatedProfile = {
+        ...profile,
+        name: defaultAddr.name,
+        phone: defaultAddr.phone,
+        city: defaultAddr.city,
+        address: defaultAddr.address
+      };
+      saveCustomerProfile(updatedProfile);
+    } else if (nextAddresses.length === 0) {
+      const updatedProfile = {
+        ...profile,
+        name: "",
+        phone: "",
+        city: "",
+        address: ""
+      };
+      saveCustomerProfile(updatedProfile);
+    }
+  };
+
+  const setDefaultAddress = (id) => {
+    if (!customerEmail) return;
+    const nextAddresses = addresses.map((a) => ({ ...a, isDefault: a.id === id }));
+    setAddresses(nextAddresses);
+    localStorage.setItem(`msj-addresses:${customerEmail}`, JSON.stringify(nextAddresses));
+
+    const defaultAddr = nextAddresses.find((a) => a.isDefault);
+    if (defaultAddr) {
+      const updatedProfile = {
+        ...profile,
+        name: defaultAddr.name,
+        phone: defaultAddr.phone,
+        city: defaultAddr.city,
+        address: defaultAddr.address
+      };
+      saveCustomerProfile(updatedProfile);
+    }
+  };
 
   const selectedProduct = products.find((product) => product.id === selectedId) || products[0];
   const customerEmail = customerSession?.user?.email && customerSession.user.email !== ADMIN_EMAIL ? customerSession.user.email : "";
@@ -1154,7 +1302,7 @@ export default function Home() {
               <button className="button ghost" type="button" onClick={() => navigate("checkout")}>Shop Now</button>
             </div>
           </div>
-          <HeroBottle />
+          <HeroBottle showSparks={showSparks} showGoldParticles={showGoldParticles} />
         </Section>
 
         {/* 10. TRUST SECTION */}
@@ -1206,7 +1354,7 @@ export default function Home() {
           <SectionHeading eyebrow="Best Sellers" title="Our Premium Collection" text="Signature attars with deep projection, refined dry-downs, and presentation worthy of a private fragrance cabinet." />
           <div className="featured-grid">
             {products.filter((product) => product.featured).map((product) => (
-              <ProductCard key={product.id} product={product} onAdd={addToCart} onView={(id) => { setSelectedId(id); navigate("product"); }} />
+              <ProductCard key={product.id} product={product} onAdd={addToCart} onView={(id) => { setSelectedId(id); navigate("product"); }} wishlist={wishlist} onToggleWishlist={toggleWishlist} />
             ))}
           </div>
         </Section>
@@ -1224,7 +1372,7 @@ export default function Home() {
             </aside>
             <div className="catalog-grid">
               {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} onAdd={addToCart} onView={(id) => { setSelectedId(id); navigate("product"); }} />
+                <ProductCard key={product.id} product={product} onAdd={addToCart} onView={(id) => { setSelectedId(id); navigate("product"); }} wishlist={wishlist} onToggleWishlist={toggleWishlist} />
               ))}
             </div>
           </div>
@@ -1295,7 +1443,7 @@ export default function Home() {
           <h3 className="related-title">Related Products</h3>
           <div className="related-grid">
             {(relatedProducts.length ? relatedProducts : products.slice(0, 3)).map((product) => (
-              <ProductCard key={product.id} product={product} onAdd={addToCart} onView={(id) => { setSelectedId(id); navigate("product"); }} compact />
+                <ProductCard key={product.id} product={product} onAdd={addToCart} onView={(id) => { setSelectedId(id); navigate("product"); }} compact wishlist={wishlist} onToggleWishlist={toggleWishlist} />
             ))}
           </div>
         </Section>
@@ -1314,113 +1462,350 @@ export default function Home() {
           </div>
         </Section>
 
-        {/* 7. FIXED STEP-BASED OTP LOGIN EXPERIENCE */}
+        {/* 7. REDESIGNED LUXURY E-COMMERCE SIDEBAR DASHBOARD */}
         <Section id="account" view={view} className="account-section">
-          <SectionHeading eyebrow="My account" title="Login & Orders" text="Customers can sign in with email OTP, save delivery details, and view recent orders." />
-          <div className="account-layout">
-            
-            {/* Step-based OTP Form */}
-            <div className="account-card glass-panel reveal">
-              <h3>Sign in</h3>
-              
-              <div className={`form-note ${otpError ? "error-feedback" : ""}`}>
-                {customerNote}
-              </div>
-
-              {otpStep === 1 ? (
-                // Step 1: Request OTP for valid Email address
-                <div style={{ display: "grid", gap: "1.2rem" }}>
-                  <label>Email 
-                    <input 
-                      type="email" 
-                      value={profile.email} 
-                      onChange={(event) => setProfile({ ...profile, email: event.target.value })} 
-                      placeholder="you@example.com" 
-                      required 
-                    />
-                  </label>
-                  <button 
-                    className="button primary full-width" 
-                    type="button" 
-                    onClick={sendCustomerOtp}
-                    disabled={loadingOtp}
-                  >
-                    {loadingOtp ? "Sending Code..." : "Send OTP"}
-                  </button>
+          {!customerEmail ? (
+            <div className="visitor-login-container reveal">
+              <SectionHeading eyebrow="MSJ Attar ritual" title="Customer Portal" text="Enter your email to receive a 6-digit verification code and access your private perfume archive." />
+              <div className="account-card glass-panel visitor-login-card">
+                <h3>Sign in / Register</h3>
+                <div className={`form-note ${otpError ? "error-feedback" : ""}`}>
+                  {customerNote}
                 </div>
-              ) : (
-                // Step 2: Validate 6-digit numeric token
-                <form onSubmit={verifyCustomerOtp} style={{ display: "grid", gap: "1.2rem" }}>
-                  <label>OTP Code
-                    <input 
-                      name="otp" 
-                      type="text" 
-                      inputMode="numeric" 
-                      maxLength="6" 
-                      placeholder="Enter 6-digit code" 
-                      required 
-                    />
-                  </label>
-                  <button 
-                    className="button primary full-width" 
-                    type="submit"
-                    disabled={loadingOtp}
-                  >
-                    {loadingOtp ? "Verifying..." : "Verify & Login"}
-                  </button>
-                  <button 
-                    className="button ghost small-button full-width" 
-                    type="button" 
-                    onClick={() => { setOtpStep(1); setCustomerNote("Enter your email and verify the OTP sent to your inbox."); }}
-                  >
-                    Change Email
-                  </button>
-                </form>
-              )}
-
-              {customerEmail && (
-                <button 
-                  className="button ghost full-width" 
-                  type="button" 
-                  onClick={customerSignOut}
-                  style={{ marginTop: "1rem" }}
-                >
-                  Sign Out
-                </button>
-              )}
-            </div>
-
-            <form className="account-card glass-panel reveal" onSubmit={(event) => { event.preventDefault(); saveCustomerProfile(profile); }}>
-              <h3>Saved details</h3>
-              <p className="form-note">{profileNote}</p>
-              <div className="field-row">
-                <label>Full Name <input value={profile.name} onChange={(event) => setProfile({ ...profile, name: event.target.value })} placeholder="Your name" /></label>
-                <label>Phone <input value={profile.phone} onChange={(event) => setProfile({ ...profile, phone: event.target.value })} placeholder="+91 98765 43210" /></label>
-              </div>
-              <div className="field-row">
-                <label>City <input value={profile.city} onChange={(event) => setProfile({ ...profile, city: event.target.value })} placeholder="Your city" /></label>
-                <label>Email <input value={customerEmail} readOnly placeholder="Login first" /></label>
-              </div>
-              <label>Address <input value={profile.address} onChange={(event) => setProfile({ ...profile, address: event.target.value })} placeholder="Street, city, postal code" /></label>
-              <button className="button primary full-width" type="submit">Save Details</button>
-            </form>
-
-            <div className="account-card glass-panel reveal">
-              <div className="listing-head">
-                <h3>My orders</h3>
-                <button className="button ghost small-button" type="button" onClick={() => loadCustomerOrders()}>Refresh</button>
-              </div>
-              <div className="customer-orders-list">
-                {!customerEmail ? (
-                  <div className="order-card"><strong>Login required</strong><span>Your orders will appear here after email login.</span></div>
-                ) : customerOrders.length ? (
-                  customerOrders.map((order) => <OrderCard key={order.id} order={order} />)
+                {otpStep === 1 ? (
+                  <div style={{ display: "grid", gap: "1.5rem" }}>
+                    <div className="input-group">
+                      <label>Email Address</label>
+                      <input 
+                        type="email" 
+                        value={profile.email} 
+                        onChange={(event) => setProfile({ ...profile, email: event.target.value })} 
+                        placeholder="you@example.com" 
+                        required 
+                      />
+                    </div>
+                    <button 
+                      className="button primary full-width" 
+                      type="button" 
+                      onClick={sendCustomerOtp}
+                      disabled={loadingOtp}
+                    >
+                      {loadingOtp ? "Sending Secure Code..." : "Send Verification OTP"}
+                    </button>
+                  </div>
                 ) : (
-                  <div className="order-card"><strong>No orders yet</strong><span>Your MSJ Attar orders will appear here.</span></div>
+                  <form onSubmit={verifyCustomerOtp} style={{ display: "grid", gap: "1.5rem" }}>
+                    <div className="input-group">
+                      <label>6-Digit Verification Code</label>
+                      <input 
+                        name="otp" 
+                        type="text" 
+                        inputMode="numeric" 
+                        maxLength="6" 
+                        placeholder="Enter 6-digit code" 
+                        required 
+                      />
+                    </div>
+                    <button 
+                      className="button primary full-width" 
+                      type="submit"
+                      disabled={loadingOtp}
+                    >
+                      {loadingOtp ? "Verifying Session..." : "Verify & Enter Portal"}
+                    </button>
+                    <button 
+                      className="button ghost small-button full-width" 
+                      type="button" 
+                      onClick={() => { setOtpStep(1); setCustomerNote("Enter your email and verify the OTP sent to your inbox."); }}
+                    >
+                      Change Email
+                    </button>
+                  </form>
                 )}
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="dashboard-container reveal">
+              {/* Left Sidebar Menu */}
+              <aside className="dashboard-sidebar glass-panel">
+                <div className="sidebar-profile-summary">
+                  <div className="mini-avatar">
+                    {profile.name ? profile.name.slice(0, 2).toUpperCase() : customerEmail.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="mini-profile-details">
+                    <h4>{profile.name || "Valued Customer"}</h4>
+                    <span className="member-badge">Gold Tier ⚜️</span>
+                  </div>
+                </div>
+
+                <nav className="sidebar-nav">
+                  <button type="button" className={activeTab === "profile" ? "active" : ""} onClick={() => setActiveTab("profile")}>
+                    <span className="icon">👤</span> Profile
+                  </button>
+                  <button type="button" className={activeTab === "orders" ? "active" : ""} onClick={() => setActiveTab("orders")}>
+                    <span className="icon">📦</span> My Orders
+                  </button>
+                  <button type="button" className={activeTab === "addresses" ? "active" : ""} onClick={() => setActiveTab("addresses")}>
+                    <span className="icon">📍</span> Saved Addresses
+                  </button>
+                  <button type="button" className={activeTab === "wishlist" ? "active" : ""} onClick={() => setActiveTab("wishlist")}>
+                    <span className="icon">❤️</span> Wishlist
+                  </button>
+                  <button type="button" className={activeTab === "settings" ? "active" : ""} onClick={() => setActiveTab("settings")}>
+                    <span className="icon">⚙️</span> Settings
+                  </button>
+                  <button type="button" className="logout-btn" onClick={customerSignOut}>
+                    <span className="icon">🚪</span> Logout
+                  </button>
+                </nav>
+              </aside>
+
+              {/* Right Active View Panel */}
+              <div className="dashboard-content glass-panel">
+                {activeTab === "profile" && (
+                  <div className="dashboard-tab-content profile-tab">
+                    <div className="profile-header-premium">
+                      <div className="profile-large-avatar-wrapper">
+                        <div className="profile-large-avatar">
+                          {profile.name ? profile.name.slice(0, 2).toUpperCase() : customerEmail.slice(0, 2).toUpperCase()}
+                        </div>
+                        <div className="avatar-gold-glow" />
+                      </div>
+                      <div className="profile-header-info">
+                        <span className="badge-luxury">Premium Member ⚜️</span>
+                        <h2>{profile.name || "Fragrance Connoisseur"}</h2>
+                        <p>{customerEmail}</p>
+                      </div>
+                    </div>
+
+                    <div className="profile-dashboard-stats">
+                      <div className="stat-box glass-panel">
+                        <strong>{customerOrders.length}</strong>
+                        <span>Orders Placed</span>
+                      </div>
+                      <div className="stat-box glass-panel">
+                        <strong>{wishlist.length}</strong>
+                        <span>Wishlist Items</span>
+                      </div>
+                      <div className="stat-box glass-panel">
+                        <strong>{addresses.length}</strong>
+                        <span>Addresses Saved</span>
+                      </div>
+                    </div>
+
+                    <div className="profile-details-grid">
+                      <h3>Account Credentials</h3>
+                      <div className="details-card glass-panel">
+                        <div className="detail-item">
+                          <span>Full Name</span>
+                          <strong>{profile.name || "Not set yet"}</strong>
+                        </div>
+                        <div className="detail-item">
+                          <span>Phone Number</span>
+                          <strong>{profile.phone || "Not set yet"}</strong>
+                        </div>
+                        <div className="detail-item">
+                          <span>Primary City</span>
+                          <strong>{profile.city || "Not set yet"}</strong>
+                        </div>
+                        <div className="detail-item">
+                          <span>Primary Delivery Address</span>
+                          <strong>{profile.address || "Not set yet"}</strong>
+                        </div>
+                      </div>
+                      <button type="button" className="button primary" onClick={() => setActiveTab("settings")}>Update Credentials</button>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === "orders" && (
+                  <div className="dashboard-tab-content orders-tab">
+                    <div className="tab-heading-row">
+                      <h3>My Purchase History</h3>
+                      <button className="button ghost small-button refresh-orders-btn" type="button" onClick={() => loadCustomerOrders()}>Refresh List</button>
+                    </div>
+                    <div className="customer-orders-list">
+                      {customerOrders.length ? (
+                        customerOrders.map((order) => (
+                          <OrderCard key={order.id} order={order} products={products} />
+                        ))
+                      ) : (
+                        <div className="empty-tab-state">
+                          <span className="empty-icon">📦</span>
+                          <h4>No Orders Yet</h4>
+                          <p>You haven't placed any perfume orders yet. Explore our exquisite, limited attar drops.</p>
+                          <button type="button" className="button primary" onClick={() => navigate("catalog")}>Browse Catalog</button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === "addresses" && (
+                  <div className="dashboard-tab-content addresses-tab">
+                    <div className="tab-heading-row">
+                      <h3>Saved Delivery Locations</h3>
+                      {!addressForm && (
+                        <button className="button primary small-button" type="button" onClick={() => setAddressForm({ name: profile.name, phone: profile.phone, city: profile.city, address: profile.address, label: "Home", isDefault: addresses.length === 0 })}>
+                          + Add Address
+                        </button>
+                      )}
+                    </div>
+
+                    {addressForm ? (
+                      <form className="address-form-card glass-panel" onSubmit={(e) => { e.preventDefault(); saveAddress(addressForm); }}>
+                        <h4>{addressForm.id ? "Edit Address Details" : "Register New Location"}</h4>
+                        <div className="field-row">
+                          <label>Location Label
+                            <select value={addressForm.label} onChange={(e) => setAddressForm({ ...addressForm, label: e.target.value })}>
+                              <option>Home</option>
+                              <option>Office</option>
+                              <option>Other</option>
+                            </select>
+                          </label>
+                          <label>Recipient Name
+                            <input type="text" value={addressForm.name} onChange={(e) => setAddressForm({ ...addressForm, name: e.target.value })} placeholder="Full name" required />
+                          </label>
+                        </div>
+                        <div className="field-row">
+                          <label>Phone Number
+                            <input type="text" value={addressForm.phone} onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })} placeholder="+91 98765 43210" required />
+                          </label>
+                          <label>City
+                            <input type="text" value={addressForm.city} onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })} placeholder="City name" required />
+                          </label>
+                        </div>
+                        <label>Delivery Address
+                          <input type="text" value={addressForm.address} onChange={(e) => setAddressForm({ ...addressForm, address: e.target.value })} placeholder="Flat, house, street and postal code" required />
+                        </label>
+                        <label className="checkbox-row">
+                          <input type="checkbox" checked={addressForm.isDefault} onChange={(e) => setAddressForm({ ...addressForm, isDefault: e.target.checked })} />
+                          Set as primary delivery address
+                        </label>
+                        <div className="form-actions" style={{ marginTop: "1rem" }}>
+                          <button className="button primary small-button" type="submit">Save Address</button>
+                          <button className="button ghost small-button" type="button" onClick={() => setAddressForm(null)}>Cancel</button>
+                        </div>
+                      </form>
+                    ) : (
+                      <div className="addresses-grid">
+                        {addresses.map((addr) => (
+                          <div className={`address-card glass-panel ${addr.isDefault ? "primary-default" : ""}`} key={addr.id}>
+                            <div className="address-card-header">
+                              <span className="address-label">{addr.label}</span>
+                              {addr.isDefault && <span className="default-badge">Primary</span>}
+                            </div>
+                            <div className="address-card-body">
+                              <strong>{addr.name}</strong>
+                              <p className="phone-line">📞 {addr.phone}</p>
+                              <p className="city-line">{addr.city}</p>
+                              <p className="full-line">{addr.address}</p>
+                            </div>
+                            <div className="address-card-actions">
+                              <button type="button" className="action-text-btn edit-btn" onClick={() => setAddressForm(addr)}>Edit</button>
+                              <button type="button" className="action-text-btn delete-btn" onClick={() => deleteAddress(addr.id)}>Delete</button>
+                              {!addr.isDefault && (
+                                <button type="button" className="action-text-btn default-btn" onClick={() => setDefaultAddress(addr.id)}>Set Primary</button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                        <div className="address-card add-new-card glass-panel" onClick={() => setAddressForm({ name: profile.name, phone: profile.phone, city: profile.city, address: profile.address, label: "Home", isDefault: addresses.length === 0 })}>
+                          <span className="plus-symbol">+</span>
+                          <span>Add New Address</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === "wishlist" && (
+                  <div className="dashboard-tab-content wishlist-tab">
+                    <h3>My Exquisite Curations</h3>
+                    <div className="wishlist-grid">
+                      {wishlist.length ? (
+                        products.filter(p => wishlist.includes(p.id)).map((product) => (
+                          <article className="wishlist-product-card glass-panel" key={product.id}>
+                            <button type="button" className="wishlist-remove-float" onClick={() => toggleWishlist(product.id)}>×</button>
+                            <div className="wishlist-art-container" onClick={() => { setSelectedId(product.id); navigate("product"); }}>
+                              <ProductArt product={product} />
+                            </div>
+                            <div className="wishlist-body">
+                              <p className="eyebrow">{product.type} / {product.size}</p>
+                              <h4>{product.name}</h4>
+                              <strong>{rupee.format(product.price)}</strong>
+                              <div className="wishlist-actions">
+                                <button type="button" className="button primary full-width small-button" onClick={() => addToCart(product)}>Add To Cart</button>
+                              </div>
+                            </div>
+                          </article>
+                        ))
+                      ) : (
+                        <div className="empty-tab-state">
+                          <span className="empty-icon">❤️</span>
+                          <h4>Wishlist Is Empty</h4>
+                          <p>Curate your private archive of luxury attars. Browse our collection and heart your favorites.</p>
+                          <button type="button" className="button primary" onClick={() => navigate("catalog")}>Explore Collection</button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === "settings" && (
+                  <div className="dashboard-tab-content settings-tab">
+                    <h3>Account Configurations</h3>
+                    
+                    <form className="settings-form glass-panel" onSubmit={(event) => { event.preventDefault(); saveCustomerProfile(profile); setProfileNote("Details updated successfully."); }}>
+                      <h4>Personal Information Settings</h4>
+                      <p className="form-note">{profileNote}</p>
+                      
+                      <div className="field-row">
+                        <label>Display Name 
+                          <input value={profile.name} onChange={(event) => setProfile({ ...profile, name: event.target.value })} placeholder="Your name" />
+                        </label>
+                        <label>Phone Number 
+                          <input value={profile.phone} onChange={(event) => setProfile({ ...profile, phone: event.target.value })} placeholder="+91 98765 43210" />
+                        </label>
+                      </div>
+
+                      <div className="field-row">
+                        <label>Default City 
+                          <input value={profile.city} onChange={(event) => setProfile({ ...profile, city: event.target.value })} placeholder="Your city" />
+                        </label>
+                        <label>Registered Email 
+                          <input value={customerEmail} readOnly style={{ opacity: 0.6, cursor: "not-allowed" }} />
+                        </label>
+                      </div>
+
+                      <label>Default Delivery Address 
+                        <input value={profile.address} onChange={(event) => setProfile({ ...profile, address: event.target.value })} placeholder="Street details" />
+                      </label>
+
+                      <button className="button primary" type="submit">Update Details</button>
+                    </form>
+
+                    <div className="settings-preferences-card glass-panel" style={{ marginTop: "2rem" }}>
+                      <h4>Interactive Experience Preferences</h4>
+                      <div className="preference-options">
+                        <label className="checkbox-row-premium">
+                          <input type="checkbox" checked={showSparks} onChange={(e) => setShowSparks(e.target.checked)} />
+                          <span className="pref-label">Render Ambient Burning Ember Sparks</span>
+                          <span className="pref-desc">Renders orange sparks rising from the bottom hero rocks pedestal.</span>
+                        </label>
+
+                        <label className="checkbox-row-premium">
+                          <input type="checkbox" checked={showGoldParticles} onChange={(e) => setShowGoldParticles(e.target.checked)} />
+                          <span className="pref-label">Render Luminous 3D Gold Dust Particles</span>
+                          <span className="pref-desc">Simulates floating particles reflecting ambient Arabic perfumes.</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </Section>
 
         {/* 8. CHECKOUT WITH VALIDATION */}
@@ -1609,20 +1994,20 @@ function CartSummary({ items, total, onRemove }) {
   );
 }
 
-function OrderCard({ order, admin = false, onStatus, whatsappUrl }) {
-  return (
-    <article className="order-card">
-      <div className="listing-head">
-        <strong>{order.customerName || new Date(order.createdAt).toLocaleString("en-IN")}</strong>
-        <span>{rupee.format(order.total)}</span>
-      </div>
-      {order.customerPhone && <span>{order.customerPhone} - {order.city || ""}</span>}
-      {order.customerEmail && <small>{order.customerEmail} - {new Date(order.createdAt).toLocaleString("en-IN")}</small>}
-      <small>{order.address}</small>
-      <div className="order-lines">
-        {order.items.map((item) => <small key={`${order.id}-${item.id}`}>{item.name} x {item.quantity} - {rupee.format(item.price * item.quantity)}</small>)}
-      </div>
-      {admin ? (
+function OrderCard({ order, admin = false, onStatus, whatsappUrl, products = [] }) {
+  if (admin) {
+    return (
+      <article className="order-card admin-order-card">
+        <div className="listing-head">
+          <strong>{order.customerName || new Date(order.createdAt).toLocaleString("en-IN")}</strong>
+          <span>{rupee.format(order.total)}</span>
+        </div>
+        {order.customerPhone && <span>{order.customerPhone} - {order.city || ""}</span>}
+        {order.customerEmail && <small>{order.customerEmail} - {new Date(order.createdAt).toLocaleString("en-IN")}</small>}
+        <small>{order.address}</small>
+        <div className="order-lines">
+          {order.items.map((item) => <small key={`${order.id}-${item.id}`}>{item.name} x {item.quantity} - {rupee.format(item.price * item.quantity)}</small>)}
+        </div>
         <div className="order-actions">
           <label>Status
             <select value={order.status} onChange={(event) => onStatus(order.id, event.target.value)}>
@@ -1631,9 +2016,95 @@ function OrderCard({ order, admin = false, onStatus, whatsappUrl }) {
           </label>
           <a className="button ghost small-button" href={whatsappUrl} target="_blank" rel="noreferrer">WhatsApp</a>
         </div>
-      ) : (
-        <span>Status: {order.status}</span>
+      </article>
+    );
+  }
+
+  const statusLabels = {
+    new: "Pending",
+    confirmed: "Confirmed",
+    packed: "Packed",
+    shipped: "Dispatched",
+    delivered: "Delivered",
+    cancelled: "Cancelled"
+  };
+
+  const statusSteps = ["new", "confirmed", "packed", "shipped", "delivered"];
+  const currentStepIndex = statusSteps.indexOf(order.status);
+  const isCancelled = order.status === "cancelled";
+
+  const trackUrl = `https://wa.me/919480169422?text=${encodeURIComponent(
+    `Hi! I would like to track my MSJ Attar order #${order.id.slice(0, 8).toUpperCase()} placed on ${new Date(order.createdAt).toLocaleDateString("en-IN")}. Current status is ${statusLabels[order.status] || order.status}.`
+  )}`;
+
+  return (
+    <article className="order-card customer-order-card glass-panel">
+      <div className="order-card-header">
+        <div className="order-info-group">
+          <span className="order-id">Order ID: #{order.id.slice(0, 8).toUpperCase()}</span>
+          <span className="order-date">{new Date(order.createdAt).toLocaleDateString("en-IN", { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+        </div>
+        <div className="order-meta-group">
+          <span className="order-total-price">{rupee.format(order.total)}</span>
+          <span className={`status-badge status-${order.status}`}>{statusLabels[order.status] || order.status}</span>
+        </div>
+      </div>
+
+      <div className="order-items-list">
+        {order.items.map((item) => {
+          const matchingProduct = products.find(p => p.id === item.id || toId(p.name) === toId(item.name));
+          return (
+            <div className="order-item-row" key={`${order.id}-${item.id}`}>
+              <div className="order-item-thumbnail">
+                {matchingProduct?.image ? (
+                  <img src={matchingProduct.image} alt={item.name} />
+                ) : (
+                  <div className="placeholder-thumb" style={{ border: `1px solid ${matchingProduct?.color || '#d4af37'}` }}>
+                    <span>MSJ</span>
+                  </div>
+                )}
+              </div>
+              <div className="order-item-details">
+                <h4>{item.name}</h4>
+                <p className="order-item-spec">{item.type} / {item.size} / Qty: {item.quantity}</p>
+              </div>
+              <div className="order-item-price-col">
+                <strong>{rupee.format(item.price * item.quantity)}</strong>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {!isCancelled && (
+        <div className="order-tracking-timeline">
+          <div className="timeline-progress-bar">
+            <div 
+              className="timeline-progress-line" 
+              style={{ width: `${(Math.max(0, currentStepIndex) / (statusSteps.length - 1)) * 100}%` }}
+            />
+            {statusSteps.map((step, idx) => (
+              <div 
+                key={step} 
+                className={`timeline-step-node ${idx <= currentStepIndex ? "active" : ""}`}
+                title={statusLabels[step]}
+              >
+                <span className="node-dot" />
+                <span className="node-label">{statusLabels[step]}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
+
+      <div className="order-card-footer">
+        <div className="delivery-address-summary">
+          <p>Delivered to: <strong>{order.customerName}</strong>, {order.city}, {order.address.slice(0, 30)}...</p>
+        </div>
+        <a className="button primary small-button track-btn" href={trackUrl} target="_blank" rel="noreferrer">
+          Track Order
+        </a>
+      </div>
     </article>
   );
 }
